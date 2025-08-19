@@ -1,0 +1,17 @@
+[Unit]
+Description=NFSC brief personal node
+Documentation=https://www.nfscbrief.com/
+After=network.target
+
+[Service]
+Type=simple
+User=admin
+Group=admin
+StandardOutput=append:/home/admin/data/server/stdout.txt
+StandardError=append:/home/admin/data/server/stderr.txt
+ExecStart=/home/admin/.nvm/versions/node/v22.18.0/bin/node /home/admin/node/src/index.js -d /home/admin/data/server
+Restart=on-failure
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target

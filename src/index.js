@@ -1,0 +1,67 @@
+import cors from '@fastify/cors'
+import multipart from '@fastify/multipart';
+import {Command} from 'commander';
+import Fastify from "fastify";
+import path from "node:path";
+
+import DbAgent from './db_agent.js';
+import {routes as fileRoutes} from './r_file.js';
+import {routes as idRoutes} from './r_id.js';
+import {routes as jsonRoutes} from './r_json.js';
+import {routes as pinRoutes} from './r_pin.js';
+import * as utils from './utils.js';
+
+let command = new Command();
+command.version('1.0.0')
+    .usage('[OPTIONS]...')
+    .requiredOption('-d, --dir <dir>', 'Working directory root.');
+command.parse();
+
+const options = command.opts();
+console.log("Root dir:", options.dir);
+
+let config = utils.readJsonFile(path.join(options.dir, "config.json"));
+config.root = options.dir;
+let db = new DbAgent();
+db.init(config);
+
+console.info("Creating API server...");
+
+const fastify = Fastify({logger : true});
+
+fastify.addHook('preHandler', async (req, res) => {
+  if (!req.g) {
+    req.g = {config : config, db : db};
+  }
+});
+
+fastify.register(cors, {
+  origin : '*',
+  methods : [ 'GET', 'POST', 'DELETE', 'OPTIONS' ],
+  strictPreflight : false
+});
+
+fastify.register(multipart, {
+  limits : {
+    fieldNameSize : 100, // Max field name size in bytes
+    fieldSize : 5000,    // Max field value size in bytes
+    fields : 10,         // Max number of non-file fields
+    fileSize : 50000000, // For multipart forms, the max file size in bytes
+    files : 1,           // Max number of file fields
+    headerPairs : 2000,  // Max number of header key=>value pairs
+    parts : 100 // For multipart forms, the max number of parts (fields + files)
+  }
+});
+fastify.register(idRoutes, {prefix : '/api/id'});
+fastify.register(fileRoutes, {prefix : '/api/file'});
+fastify.register(jsonRoutes, {prefix : '/api/json'});
+fastify.register(pinRoutes, {prefix : '/api/pin'});
+
+let c = {host : config.host, port : config.port};
+if (config.debug) {
+  c.logger = true;
+}
+
+fastify.listen(c);
+
+console.info("Running...");

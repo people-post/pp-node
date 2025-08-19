@@ -1,0 +1,7 @@
+{
+    "debug": true,
+    "host": "::",
+    "port": 9097,
+    "users": "users.json",
+    "api_key": "abc"
+}
