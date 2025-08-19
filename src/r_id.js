@@ -1,4 +1,4 @@
-import * as utils from './utils.js';
+import * as utils from 'brief-js-lib';
 
 function register(fastify, options, done) {
   const schema = {

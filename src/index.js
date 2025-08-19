@@ -1,5 +1,6 @@
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart';
+import * as utils from 'brief-js-lib';
 import {Command} from 'commander';
 import Fastify from "fastify";
 import path from "node:path";
@@ -9,7 +10,6 @@ import {routes as fileRoutes} from './r_file.js';
 import {routes as idRoutes} from './r_id.js';
 import {routes as jsonRoutes} from './r_json.js';
 import {routes as pinRoutes} from './r_pin.js';
-import * as utils from './utils.js';
 
 let command = new Command();
 command.version('1.0.0')

@@ -1,6 +1,5 @@
+import * as utils from 'brief-js-lib';
 import child_process from 'child_process';
-
-import * as utils from './utils.js';
 
 function update(fastify, options, done) {
   const schema = {

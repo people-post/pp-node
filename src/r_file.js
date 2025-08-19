@@ -1,10 +1,9 @@
+import * as utils from 'brief-js-lib';
 import child_process from 'child_process';
 import fs from "node:fs";
 import os from 'node:os';
 import path from 'node:path';
 import {pipeline} from 'node:stream/promises';
-
-import * as utils from './utils.js';
 
 function upload(fastify, opts, done) {
   fastify.post('/upload', {
