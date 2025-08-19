@@ -3,7 +3,7 @@ For personal data hosting
 
 ```mermaid
 graph TD;
-    USER((User)):::User-- New post -->THIS(Pinning server):::Server;
+    USER((User)):::User-- New post -->THIS(Personal node):::Server;
     linkStyle 0 color:salmon;
     classDef User color:blue;
     classDef Server fill:salmon,color:white;
