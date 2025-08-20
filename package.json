@@ -7,5 +7,8 @@
         "brief-js-lib": "github:nfsc-brief-web3/brief-js-lib",
         "commander": "^13.1.0",
         "fastify": "^5.3.2"
+    },
+    "devDependencies": {
+        "esbuild": "^0.25.9"
     }
 }
