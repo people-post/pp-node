@@ -6,10 +6,9 @@ import Fastify from "fastify";
 import path from "node:path";
 
 import DbAgent from './db_agent.js';
-import {routes as fileRoutes} from './r_file.js';
 import {routes as idRoutes} from './r_id.js';
-import {routes as jsonRoutes} from './r_json.js';
 import {routes as pinRoutes} from './r_pin.js';
+import {routes as uploadRoutes} from './r_upload.js';
 
 let command = new Command();
 command.version('1.0.0')
@@ -53,9 +52,8 @@ fastify.register(multipart, {
   }
 });
 fastify.register(idRoutes, {prefix : '/api/id'});
-fastify.register(fileRoutes, {prefix : '/api/file'});
-fastify.register(jsonRoutes, {prefix : '/api/json'});
 fastify.register(pinRoutes, {prefix : '/api/pin'});
+fastify.register(uploadRoutes, {prefix : '/api/upload'});
 
 let c = {host : config.host, port : config.port};
 if (config.debug) {

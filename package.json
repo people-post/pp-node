@@ -6,7 +6,8 @@
         "@noble/post-quantum": "^0.4.1",
         "brief-js-lib": "github:nfsc-brief-web3/brief-js-lib",
         "commander": "^13.1.0",
-        "fastify": "^5.3.2"
+        "fastify": "^5.3.2",
+        "sharp": "^0.34.3"
     },
     "devDependencies": {
         "esbuild": "^0.25.9"
