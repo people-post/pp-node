@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {pipeline} from 'node:stream/promises';
 
-import ImageAgent from './image_agent.js';
+import ImageAgent from './ImageAgent.js';
 
 function file(fastify, opts, done) {
   fastify.post('/file', {

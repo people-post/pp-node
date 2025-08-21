@@ -1,46 +1,9 @@
 import child_process from 'child_process';
 import fs from "node:fs";
-import path from 'node:path';
 import {pipeline} from 'node:stream/promises';
 import sharp from 'sharp';
 
-class Directory {
-  #rootDir;
-  constructor(rootDir) { this.#rootDir = rootDir; }
-
-  getRootPath() { return this.#rootDir; }
-}
-
-class FileDirectory extends Directory {
-  getIndexFilePath() { return path.join(this.getRootPath(), 'index.json'); };
-  getRawFilePath() { return path.join(this.getRootPath(), 'raw'); }
-  getCoverImageRawFilePath() {
-    return path.join(this.getRootPath(), 'cover_raw');
-  }
-  getCoverImageFilePath() { return path.join(this.getRootPath(), 'cover'); }
-}
-
-class ImageDirectory extends FileDirectory {
-  getDefaultFilePath() { return path.join(this.getRootPath(), 'image'); }
-  getThumbnailFilePath(sizeX, sizeY) {
-    let base = this.getDefaultFilePath();
-    return `${base}_${sizeX}x${sizeY}`;
-  }
-}
-
-class VideoDirectory extends FileDirectory {
-  getHlsManifestFilePath() {
-    return path.join(this.getRootPath(), 'manifest.m3u8');
-  }
-  getWorkDirPath() { return path.join(this.getRootPath(), 'workspace'); }
-}
-
-class VideoWorkDirectory extends Directory {
-  getStdoutFilePath() { return path.join(this.getRootPath(), 'stdout.txt'); }
-  getStderrFilePath() { return path.join(this.getRootPath(), 'stderr.txt'); }
-  getConfigFilePath() { return path.join(this.getRootPath(), 'config.json'); }
-  getStatusFilePath() { return path.join(this.getRootPath(), 'status.json'); }
-}
+import ImageDirectory from './data_types/ImageDirectory.js';
 
 export default class ImageAgent {
   #fileDir;
