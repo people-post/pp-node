@@ -1,8 +1,9 @@
+import Ajv from 'ajv';
 import * as utils from 'brief-js-lib';
 import child_process from 'child_process';
 
 function update(fastify, options, done) {
-  const schema = {
+  const bodySchema = {
     body : {
       type : 'object',
       properties : {
@@ -10,11 +11,28 @@ function update(fastify, options, done) {
         id : {type : 'string'},
         sig : {type : 'string'}
       },
+      required : [ 'data', 'id', 'sig' ]
     }
   };
 
+  const objSchema = {
+    type : "object",
+    properties : {
+      add_cids : {
+        type : 'array',
+        minItems : 1,
+        maxItems : 100,
+        items : {type : 'string'}
+      }
+    },
+    required : [ 'add_cids' ]
+  };
+
+  const ajv = new Ajv();
+  const objValidate = ajv.compile(objSchema);
+
   fastify.post('/update', {
-    schema : schema,
+    schema : bodySchema,
     preHandler : async (req, res) => utils.authCheck(req, res, req.g.db),
     handler : async (req, res) => {
       if (!utils.verifySignature(req.body.data, req.g.user.publicKey,
@@ -22,32 +40,24 @@ function update(fastify, options, done) {
         return utils.makeErrorResponse(res, "sig not verified");
       }
 
-      let cmd;
-      const d = JSON.parse(req.body.data);
-      let removed = "";
-      let added = "";
-      if (Object.prototype.toString.call(d) === '[object Object]') {
-        if (Object.hasOwn(d, "rm_cids"))
-          if (Array.isArray(d.rm_cids))
-            if (d.rm_cids.length) {
-              removed = d.rm_cids.join(' ');
-              cmd = 'ipfs pin rm ' + removed;
-              try {
-                child_process.execSync(cmd);
-              } catch (e) {
-                // Don't care remove error
-              }
-            }
-        if (Object.hasOwn(d, "add_cids"))
-          if (Array.isArray(d.add_cids))
-            if (d.add_cids.length) {
-              added = d.add_cids.join(' ')
-              cmd = 'ipfs pin add ' + added;
-              child_process.execSync(cmd);
-            }
+      let d;
+      try {
+        d = JSON.parse(req.body.data);
+      } catch (e) {
+        return utils.makeErrorResponse(res, "Invalid data format");
       }
 
-      return utils.makeResponse(res, {removed : removed, added : added});
+      const valid = objValidate(d);
+      if (!valid) {
+        let msg = objValidate.errors.map(x => x.message).join(' ');
+        return utils.makeErrorResponse(res, msg);
+      }
+
+      const cids = d.add_cids.join(' ')
+      const cmd = 'ipfs pin add ' + cids;
+      child_process.execSync(cmd);
+
+      return utils.makeResponse(res, {});
     }
   });
 

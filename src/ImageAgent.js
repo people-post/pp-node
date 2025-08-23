@@ -12,16 +12,14 @@ export default class ImageAgent {
 
   async save(file) {
     const meta = {};
-    const cids = [];
 
     // Raw file
     let filePath = this.#fileDir.getRawFilePath();
     await pipeline(file, fs.createWriteStream(filePath));
     meta.raw = this.#ipfsAddFile(filePath);
-    cids.push(meta.raw);
 
     // Preprocess images
-    const image = await sharp(this.#fileDir.getRawFilePath());
+    const image = await sharp(this.#fileDir.getRawFilePath()).jpeg();
     const iMeta = await image.metadata();
 
     // Default file
@@ -29,10 +27,9 @@ export default class ImageAgent {
     let y = 960;
     x = Math.min(x, iMeta.width);
     y = Math.min(y, iMeta.height);
-    filePath = this.#fileDir.getDefaultFilePath();
+    filePath = this.#fileDir.getDefaultFilePath('jpg');
     await image.resize(x, y).toFile(filePath);
     meta.default = this.#ipfsAddFile(filePath);
-    cids.push(meta.default);
 
     // Thumbnails
     meta.thumbnails = [];
@@ -43,11 +40,10 @@ export default class ImageAgent {
       }
       x = Math.min(x, iMeta.width);
       y = Math.min(y, iMeta.height);
-      filePath = this.#fileDir.getThumbnailFilePath(x, y);
+      filePath = this.#fileDir.getThumbnailFilePath(x, y, 'jpg');
       await image.resize(x, y).toFile(filePath);
       let cid = this.#ipfsAddFile(filePath);
       meta.thumbnails.push({x : x, y : y, cid : cid});
-      cids.push(cid);
     }
 
     // Write meta
@@ -56,8 +52,7 @@ export default class ImageAgent {
 
     // cid: Meta file cid
     // meta: Meta file relates to all files
-    // cids: All other file cids
-    return {cid : this.#ipfsAddFile(filePath), meta : meta, cids : cids};
+    return {cid : this.#ipfsAddFile(filePath), meta : meta};
   }
 
   #ipfsAddFile(filePath) {

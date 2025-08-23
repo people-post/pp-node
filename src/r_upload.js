@@ -12,11 +12,11 @@ function file(fastify, opts, done) {
     preHandler : async (req, res) => utils.authCheck(req, res, req.g.db),
     handler : async (req, res) => {
       const data = await req.file();
-      const buff = await data.toBuffer();
+      const hash = data.fields.hash.value;
       const sig = data.fields.sig.value;
-      if (!utils.verifyUint8ArraySignature(new Uint8Array(buff),
-                                           req.g.user.publicKey, sig)) {
-        return utils.makeErrorResponse(res, 'sig not verified');
+      // TODO: Verify hash
+      if (!utils.verifySignature(hash, req.g.user.publicKey, sig)) {
+        return utils.makeErrorResponse(res, 'Failed to verify signature');
       }
 
       let dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
@@ -35,17 +35,15 @@ function file(fastify, opts, done) {
 
 function image(fastify, opts, done) {
   fastify.post('/image', {
-    // preHandler : async (req, res) => utils.authCheck(req, res, req.g.db),
+    preHandler : async (req, res) => utils.authCheck(req, res, req.g.db),
     handler : async (req, res) => {
       const data = await req.file();
-      // const buff = await data.toBuffer(); // !!toBuffer will consume file
+      const hash = data.fields.hash.value;
       const sig = data.fields.sig.value;
-      // if (!utils.verifyUint8ArraySignature(new Uint8Array(buff),
-      // req.g.user.publicKey, sig)) {
-      // return
-      // utils.makeErrorResponse(res,
-      // 'sig not verified');
-      //}
+      // TODO: Verify hash
+      if (!utils.verifySignature(hash, req.g.user.publicKey, sig)) {
+        return utils.makeErrorResponse(res, 'Failed to verify signature');
+      }
 
       const dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
       const agent = new ImageAgent();
@@ -63,14 +61,15 @@ function video(fastify, opts, done) {
     preHandler : async (req, res) => utils.authCheck(req, res, req.g.db),
     handler : async (req, res) => {
       const data = await req.file();
-      const buff = await data.toBuffer();
+      const hash = data.fields.hash.value;
       const sig = data.fields.sig.value;
-      if (!utils.verifyUint8ArraySignature(new Uint8Array(buff),
-                                           req.g.user.publicKey, sig)) {
-        return utils.makeErrorResponse(res, 'sig not verified');
+      // TODO: Verify hash
+      if (!utils.verifySignature(hash, req.g.user.publicKey, sig)) {
+        return utils.makeErrorResponse(res, 'Faield to verify signature');
       }
     }
   });
+
   done();
 }
 
