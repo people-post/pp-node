@@ -2,6 +2,8 @@ import Ajv from 'ajv';
 import * as utils from 'brief-js-lib';
 import child_process from 'child_process';
 
+import UserFileAgent from './UserFileAgent.js';
+
 function update(fastify, options, done) {
   const bodySchema = {
     body : {
@@ -58,8 +60,7 @@ function update(fastify, options, done) {
       const cmd = 'ipfs pin add ' + cids;
       child_process.execSync(cmd);
 
-      // TODO: User dir
-      aUserFile.attach(req.g.user.id);
+      aUserFile.attach(req.g.aDataRoot.getOrInitUserDir(req.g.user.id));
       for (let cid of d.add_cids) {
         aUserFile.saveFile(cid);
       }

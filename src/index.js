@@ -5,6 +5,7 @@ import {Command} from 'commander';
 import Fastify from "fastify";
 import path from "node:path";
 
+import DataRootDirAgent from './DataRootDirAgent.js';
 import DbAgent from './db_agent.js';
 import {routes as idRoutes} from './r_id.js';
 import {routes as pinRoutes} from './r_pin.js';
@@ -23,6 +24,8 @@ let config = utils.readJsonFile(path.join(options.dir, "config.json"));
 config.root = options.dir;
 let db = new DbAgent();
 db.init(config);
+let aDataRoot = new DataRootDirAgent();
+aDataRoot.init(config);
 
 console.info("Creating API server...");
 
@@ -30,7 +33,7 @@ const fastify = Fastify({logger : true});
 
 fastify.addHook('preHandler', async (req, res) => {
   if (!req.g) {
-    req.g = {config : config, db : db};
+    req.g = {config : config, db : db, aDataRoot : aDataRoot};
   }
 });
 
