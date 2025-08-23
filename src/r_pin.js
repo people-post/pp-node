@@ -30,6 +30,7 @@ function update(fastify, options, done) {
 
   const ajv = new Ajv();
   const objValidate = ajv.compile(objSchema);
+  const aUserFile = new UserFileAgent();
 
   fastify.post('/update', {
     schema : bodySchema,
@@ -56,6 +57,12 @@ function update(fastify, options, done) {
       const cids = d.add_cids.join(' ')
       const cmd = 'ipfs pin add ' + cids;
       child_process.execSync(cmd);
+
+      // TODO: User dir
+      aUserFile.attach(req.g.user.id);
+      for (let cid of d.add_cids) {
+        aUserFile.saveFile(cid);
+      }
 
       return utils.makeResponse(res, {});
     }

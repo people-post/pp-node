@@ -6,20 +6,20 @@ import sharp from 'sharp';
 import ImageDirectory from './data_types/ImageDirectory.js';
 
 export default class ImageAgent {
-  #fileDir;
+  #imgDir;
 
-  attach(fileDirRoot) { this.#fileDir = new ImageDirectory(fileDirRoot); }
+  attach(fileDirRoot) { this.#imgDir = new ImageDirectory(fileDirRoot); }
 
   async save(file) {
     const meta = {};
 
     // Raw file
-    let filePath = this.#fileDir.getRawFilePath();
+    let filePath = this.#imgDir.getRawFilePath();
     await pipeline(file, fs.createWriteStream(filePath));
     meta.raw = this.#ipfsAddFile(filePath);
 
     // Preprocess images
-    const image = await sharp(this.#fileDir.getRawFilePath()).jpeg();
+    const image = await sharp(this.#imgDir.getRawFilePath()).jpeg();
     const iMeta = await image.metadata();
 
     // Default file
@@ -27,7 +27,7 @@ export default class ImageAgent {
     let y = 960;
     x = Math.min(x, iMeta.width);
     y = Math.min(y, iMeta.height);
-    filePath = this.#fileDir.getDefaultFilePath('jpg');
+    filePath = this.#imgDir.getDefaultFilePath('jpg');
     await image.resize(x, y).toFile(filePath);
     meta.default = this.#ipfsAddFile(filePath);
 
@@ -40,14 +40,14 @@ export default class ImageAgent {
       }
       x = Math.min(x, iMeta.width);
       y = Math.min(y, iMeta.height);
-      filePath = this.#fileDir.getThumbnailFilePath(x, y, 'jpg');
+      filePath = this.#imgDir.getThumbnailFilePath(x, y, 'jpg');
       await image.resize(x, y).toFile(filePath);
       let cid = this.#ipfsAddFile(filePath);
       meta.thumbnails.push({x : x, y : y, cid : cid});
     }
 
     // Write meta
-    filePath = this.#fileDir.getIndexFilePath();
+    filePath = this.#imgDir.getIndexFilePath();
     fs.writeFileSync(filePath, JSON.stringify(meta));
 
     // cid: Meta file cid
