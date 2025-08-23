@@ -14,14 +14,19 @@ function file(fastify, opts, done) {
       const data = await req.file();
       const hash = data.fields.hash.value;
       const sig = data.fields.sig.value;
-      // TODO: Verify hash
-      if (!utils.verifySignature(hash, req.g.user.publicKey, sig)) {
-        return utils.makeErrorResponse(res, 'Failed to verify signature');
-      }
 
       let dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
       let filePath = path.join(dirPath, "dummy");
       await pipeline(data.file, fs.createWriteStream(filePath));
+
+      if (hash != await utils.hashFile(filePath)) {
+        return utils.makeErrorResponse(res, 'Failed to verify hash');
+      }
+
+      if (!utils.verifySignature(hash, req.g.user.publicKey, sig)) {
+        return utils.makeErrorResponse(res, 'Failed to verify signature');
+      }
+
       const cmd = 'ipfs add --pin=false ' + filePath;
       const stdout = child_process.execSync(cmd);
       // stdout: Added <cid> name
@@ -34,22 +39,29 @@ function file(fastify, opts, done) {
 }
 
 function image(fastify, opts, done) {
+  const agent = new ImageAgent();
+
   fastify.post('/image', {
     preHandler : async (req, res) => utils.authCheck(req, res, req.g.db),
     handler : async (req, res) => {
       const data = await req.file();
       const hash = data.fields.hash.value;
       const sig = data.fields.sig.value;
-      // TODO: Verify hash
+
+      const dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
+      agent.attach(dirPath);
+      let d = await agent.save(data.file);
+
+      // TODO: get filePath
+      if (hash != await utils.hashFile(filePath)) {
+        return utils.makeErrorResponse(res, 'Failed to verify hash');
+      }
+
       if (!utils.verifySignature(hash, req.g.user.publicKey, sig)) {
         return utils.makeErrorResponse(res, 'Failed to verify signature');
       }
 
-      const dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
-      const agent = new ImageAgent();
-      agent.attach(dirPath);
-      console.log(dirPath);
-      return utils.makeResponse(res, await agent.save(data.file));
+      return utils.makeResponse(res, d);
     }
   });
 
