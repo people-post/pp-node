@@ -23,9 +23,9 @@ console.log("Root dir:", options.dir);
 let config = utils.readJsonFile(path.join(options.dir, "config.json"));
 config.root = options.dir;
 let db = new UserRecordAgent();
-db.init(config);
+db.init({root : config.root, users : config.users});
 let aDataRoot = new DataRootDirAgent();
-aDataRoot.init(config);
+aDataRoot.init({root : config.root, data_dir : config.data_dir});
 
 console.info("Creating API server...");
 

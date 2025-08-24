@@ -2,7 +2,12 @@ export default class Quota {
   #config = null;
   #records = [];
 
-  constructor(config) { this.#config = config; }
+  constructor(config) {
+    // Fields in config:
+    // threshold:
+    // period:
+    this.#config = config;
+  }
 
   isAvailable() {
     // TODO: Support tiers

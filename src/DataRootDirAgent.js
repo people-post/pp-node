@@ -7,6 +7,9 @@ export default class DataRootDirAgent {
   #rootDir;
 
   init(config) {
+    // Fields in config:
+    // root:
+    // data_dir:
     let dirPath = 'data';
     if (config.data_dir && config.data_dir.length) {
       dirPath = config.data_dir;

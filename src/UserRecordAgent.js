@@ -10,6 +10,9 @@ export default class UserRecordAgent {
   #recordsFilePath = null;
 
   init(config) {
+    // Fields in config:
+    // root:
+    // users:
     this.#mUsers.clear();
     this.#mQuotas.clear();
     this.#recordsFilePath = path.join(config.root, config.users);
