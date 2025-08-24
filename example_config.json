@@ -3,5 +3,6 @@
     "host": "::",
     "port": 9097,
     "users": "users.json",
+    "data_dir": "/home/hongwei/data/test_pn_data",
     "api_key": "abc"
 }
