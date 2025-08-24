@@ -7,14 +7,14 @@ import Quota from './Quota.js';
 export default class UserRecordAgent {
   #mUsers = new Map();
   #mQuotas = new Map();
-  #usersFilePath = null;
+  #recordsFilePath = null;
 
   init(config) {
     this.#mUsers.clear();
     this.#mQuotas.clear();
-    this.#usersFilePath = path.join(config.root, config.users);
-    let d_users = utils.readJsonFile(this.#usersFilePath);
-    for (let d of d_users.list) {
+    this.#recordsFilePath = path.join(config.root, config.users);
+    let dUsers = utils.readJsonFile(this.#recordsFilePath);
+    for (let d of dUsers.list) {
       this.#mUsers.set(d.id, d.public_key);
     }
     // TODO: Load from config
@@ -49,7 +49,7 @@ export default class UserRecordAgent {
     for (let [k, v] of this.#mUsers) {
       users.push({id : k, public_key : v});
     }
-    fs.writeFileSync(this.#usersFilePath,
+    fs.writeFileSync(this.#recordsFilePath,
                      JSON.stringify({list : users}, null, 2));
   }
 }
