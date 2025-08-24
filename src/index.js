@@ -6,10 +6,10 @@ import Fastify from "fastify";
 import path from "node:path";
 
 import DataRootDirAgent from './DataRootDirAgent.js';
-import DbAgent from './db_agent.js';
 import {routes as idRoutes} from './r_id.js';
 import {routes as pinRoutes} from './r_pin.js';
 import {routes as uploadRoutes} from './r_upload.js';
+import UserRecordAgent from './UserRecordAgent.js';
 
 let command = new Command();
 command.version('1.0.0')
@@ -22,7 +22,7 @@ console.log("Root dir:", options.dir);
 
 let config = utils.readJsonFile(path.join(options.dir, "config.json"));
 config.root = options.dir;
-let db = new DbAgent();
+let db = new UserRecordAgent();
 db.init(config);
 let aDataRoot = new DataRootDirAgent();
 aDataRoot.init(config);

@@ -1,38 +1,10 @@
 import * as utils from 'brief-js-lib';
-import fs from "node:fs";
-import path from "node:path";
+import fs from 'node:fs';
+import path from 'node:path';
 
-class Quota {
-  #config = null;
-  #records = [];
+import Quota from './Quota.js';
 
-  constructor(config) { this.#config = config; }
-
-  isAvailable() {
-    // TODO: Support tiers
-    let t = Date.now() - this.#config.period;
-    let idx = this.#records.findIndex(x => x > t);
-    let n = this.#records.length;
-    if (idx > 0) {
-      n -= idx;
-    }
-
-    return n < this.#config.threshold;
-  }
-
-  addItem() {
-    // Remove useless items
-    let t = Date.now() - this.#config.period;
-    let idx = this.#records.findIndex(x => x > t);
-    if (idx > 0) {
-      // Remove item right before idx
-      this.#records.splice(0, idx);
-    }
-    this.#records.push(Date.now());
-  }
-}
-
-export default class DbAgent {
+export default class UserRecordAgent {
   #mUsers = new Map();
   #mQuotas = new Map();
   #usersFilePath = null;
