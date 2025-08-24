@@ -1,4 +1,3 @@
-import child_process from 'child_process';
 import fs from "node:fs";
 import {pipeline} from 'node:stream/promises';
 import sharp from 'sharp';
@@ -10,13 +9,13 @@ export default class ImageAgent {
 
   attach(fileDirRoot) { this.#imgDir = new ImageDirectory(fileDirRoot); }
 
-  async save(file) {
+  async save(file, ipfsAgent) {
     const meta = {};
 
     // Raw file
     let filePath = this.#imgDir.getRawFilePath();
     await pipeline(file, fs.createWriteStream(filePath));
-    meta.raw = this.#ipfsAddFile(filePath);
+    meta.raw = ipfsAgent.addFile(filePath);
 
     // Preprocess images
     const image = await sharp(this.#imgDir.getRawFilePath()).jpeg();
@@ -29,7 +28,7 @@ export default class ImageAgent {
     y = Math.min(y, iMeta.height);
     filePath = this.#imgDir.getDefaultFilePath('jpg');
     await image.resize(x, y).toFile(filePath);
-    meta.default = this.#ipfsAddFile(filePath);
+    meta.default = ipfsAgent.addFile(filePath);
 
     // Thumbnails
     meta.thumbnails = [];
@@ -42,7 +41,7 @@ export default class ImageAgent {
       y = Math.min(y, iMeta.height);
       filePath = this.#imgDir.getThumbnailFilePath(x, y, 'jpg');
       await image.resize(x, y).toFile(filePath);
-      let cid = this.#ipfsAddFile(filePath);
+      let cid = ipfsAgent.addFile(filePath);
       meta.thumbnails.push({x : x, y : y, cid : cid});
     }
 
@@ -52,14 +51,6 @@ export default class ImageAgent {
 
     // cid: Meta file cid
     // meta: Meta file relates to all files
-    return {cid : this.#ipfsAddFile(filePath), meta : meta};
-  }
-
-  #ipfsAddFile(filePath) {
-    let cmd = 'ipfs add --pin=false ' + filePath;
-    let stdout = child_process.execSync(cmd);
-    // stdout: Added <cid> name
-    let cid = stdout.toString().split(" ")[1];
-    return cid.toString();
+    return {cid : ipfsAgent.addFile(filePath), meta : meta};
   }
 }

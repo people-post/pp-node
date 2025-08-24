@@ -1,5 +1,4 @@
 import * as utils from 'brief-js-lib';
-import child_process from 'child_process';
 import fs from "node:fs";
 import os from 'node:os';
 import path from 'node:path';
@@ -34,11 +33,7 @@ function file(fastify, opts, done) {
       let dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
       let filePath = path.join(dirPath, "dummy");
       await pipeline(data.file, fs.createWriteStream(filePath));
-
-      const cmd = 'ipfs add --pin=false ' + filePath;
-      const stdout = child_process.execSync(cmd);
-      // stdout: Added <cid> name
-      const cid = stdout.toString().split(" ")[1];
+      const cid = req.g.r.ipfs.addFile(filePath);
       return utils.makeResponse(res, {cid : cid.toString()});
     }
   });
@@ -62,7 +57,7 @@ function image(fastify, opts, done) {
 
       const dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
       agent.attach(dirPath);
-      let d = await agent.save(data.file);
+      let d = await agent.save(data.file, req.g.a.ipfs);
 
       return utils.makeResponse(res, d);
     }
@@ -111,10 +106,7 @@ function json(fastify, opts, done) {
       let dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
       let filePath = path.join(dirPath, "dummy");
       fs.writeFileSync(filePath, req.body.data);
-      const cmd = 'ipfs add --pin=false ' + filePath;
-      const stdout = child_process.execSync(cmd);
-      // stdout: Added <cid> name
-      const cid = stdout.toString().split(" ")[1];
+      const cid = req.g.r.ipfs.addFile(filePath);
       return utils.makeResponse(res, {cid : cid});
     }
   });

@@ -1,4 +1,3 @@
-import child_process from 'child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -8,11 +7,10 @@ export default class UserFileAgent {
   #userDir;
   attach(userDirRoot) { this.#userDir = new UserDirectory(userDirRoot); }
 
-  saveFile(cid) {
+  saveFile(cid, ipfsAgent) {
     let filePath = this.#userDir.getFilePath(cid);
     const dirPath = path.dirname(filePath);
     fs.mkdirSync(dirPath, {recursive : true});
-    let cmd = 'ipfs get --output=' + filePath + ' ' + cid;
-    child_process.execSync(cmd);
+    ipfsAgent.fetchFile(cid, filePath);
   }
 }

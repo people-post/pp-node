@@ -1,6 +1,5 @@
 import Ajv from 'ajv';
 import * as utils from 'brief-js-lib';
-import child_process from 'child_process';
 
 import UserFileAgent from './UserFileAgent.js';
 
@@ -18,7 +17,7 @@ function update(fastify, options, done) {
   };
 
   const objSchema = {
-    type : "object",
+    type : 'object',
     properties : {
       add_cids : {
         type : 'array',
@@ -40,14 +39,14 @@ function update(fastify, options, done) {
     handler : async (req, res) => {
       if (!utils.verifySignature(req.body.data, req.g.user.publicKey,
                                  req.body.sig)) {
-        return utils.makeErrorResponse(res, "sig not verified");
+        return utils.makeErrorResponse(res, 'Failed to verify signature');
       }
 
       let d;
       try {
         d = JSON.parse(req.body.data);
       } catch (e) {
-        return utils.makeErrorResponse(res, "Invalid data format");
+        return utils.makeErrorResponse(res, 'Invalid data format');
       }
 
       const valid = objValidate(d);
@@ -56,13 +55,11 @@ function update(fastify, options, done) {
         return utils.makeErrorResponse(res, msg);
       }
 
-      const cids = d.add_cids.join(' ')
-      const cmd = 'ipfs pin add ' + cids;
-      child_process.execSync(cmd);
+      req.g.a.ipfs.pinCids(d.add_cids);
 
       aUserFile.attach(req.g.a.d.getOrInitUserDir(req.g.user.id));
       for (let cid of d.add_cids) {
-        aUserFile.saveFile(cid);
+        aUserFile.saveFile(cid, req.g.a.ipfs);
       }
 
       return utils.makeResponse(res, {});
@@ -90,12 +87,11 @@ function publish(fastify, options, done) {
     handler : async (req, res) => {
       if (!utils.verifySignature(req.body.cid, req.g.user.publicKey,
                                  req.body.sig)) {
-        return utils.makeErrorResponse(res, 'sig not verified');
+        return utils.makeErrorResponse(res, 'Failed to verify signature');
       }
 
-      const cmd = 'ipfs name publish ' + req.body.cid;
-      child_process.execSync(cmd);
-      return utils.makeResponse(res, {published : req.body.cid});
+      req.g.a.ipfs.publishName('self', req.body.cid);
+      return utils.makeResponse(res, {});
     }
   });
 
@@ -103,8 +99,8 @@ function publish(fastify, options, done) {
 }
 
 function routes(fastify, opts, done) {
-  fastify.register(publish);
   fastify.register(update);
+  fastify.register(publish);
   done();
 }
 
