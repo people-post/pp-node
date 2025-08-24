@@ -7,25 +7,33 @@ import {pipeline} from 'node:stream/promises';
 
 import ImageAgent from './ImageAgent.js';
 
+function token(fastify, opts, done) {
+  fastify.get('/token', {
+    preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
+    handler : async (req, res) => {
+      const token = req.g.a.r.t.initFor(req.g.user.id);
+      return utils.makeResponse(res, {token : token});
+    }
+  });
+
+  done();
+}
+
 function file(fastify, opts, done) {
   fastify.post('/file', {
-    preHandler : async (req, res) => utils.authCheck(req, res, req.g.db),
+    preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
       const data = await req.file();
-      const hash = data.fields.hash.value;
+      const token = data.fields.token.value;
       const sig = data.fields.sig.value;
+
+      if (!utils.verifySignature(token, req.g.user.publicKey, sig)) {
+        return utils.makeErrorResponse(res, 'Failed to verify signature');
+      }
 
       let dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
       let filePath = path.join(dirPath, "dummy");
       await pipeline(data.file, fs.createWriteStream(filePath));
-
-      if (hash != await utils.hashFile(filePath)) {
-        return utils.makeErrorResponse(res, 'Failed to verify hash');
-      }
-
-      if (!utils.verifySignature(hash, req.g.user.publicKey, sig)) {
-        return utils.makeErrorResponse(res, 'Failed to verify signature');
-      }
 
       const cmd = 'ipfs add --pin=false ' + filePath;
       const stdout = child_process.execSync(cmd);
@@ -42,24 +50,19 @@ function image(fastify, opts, done) {
   const agent = new ImageAgent();
 
   fastify.post('/image', {
-    preHandler : async (req, res) => utils.authCheck(req, res, req.g.db),
+    preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
       const data = await req.file();
-      const hash = data.fields.hash.value;
+      const token = data.fields.token.value;
       const sig = data.fields.sig.value;
+
+      if (!utils.verifySignature(token, req.g.user.publicKey, sig)) {
+        return utils.makeErrorResponse(res, 'Failed to verify signature');
+      }
 
       const dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
       agent.attach(dirPath);
       let d = await agent.save(data.file);
-
-      // TODO: get filePath
-      if (hash != await utils.hashFile(filePath)) {
-        return utils.makeErrorResponse(res, 'Failed to verify hash');
-      }
-
-      if (!utils.verifySignature(hash, req.g.user.publicKey, sig)) {
-        return utils.makeErrorResponse(res, 'Failed to verify signature');
-      }
 
       return utils.makeResponse(res, d);
     }
@@ -70,13 +73,12 @@ function image(fastify, opts, done) {
 
 function video(fastify, opts, done) {
   fastify.post('/video', {
-    preHandler : async (req, res) => utils.authCheck(req, res, req.g.db),
+    preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
       const data = await req.file();
-      const hash = data.fields.hash.value;
+      const token = data.fields.token.value;
       const sig = data.fields.sig.value;
-      // TODO: Verify hash
-      if (!utils.verifySignature(hash, req.g.user.publicKey, sig)) {
+      if (!utils.verifySignature(token, req.g.user.publicKey, sig)) {
         return utils.makeErrorResponse(res, 'Faield to verify signature');
       }
     }
@@ -99,7 +101,7 @@ function json(fastify, opts, done) {
 
   fastify.post('/json', {
     schema : schema,
-    preHandler : async (req, res) => utils.authCheck(req, res, req.g.db),
+    preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
       if (!utils.verifySignature(req.body.data, req.g.user.publicKey,
                                  req.body.sig)) {
@@ -121,6 +123,7 @@ function json(fastify, opts, done) {
 }
 
 function routes(fastify, opts, done) {
+  fastify.register(token);
   fastify.register(file);
   fastify.register(image);
   fastify.register(video);

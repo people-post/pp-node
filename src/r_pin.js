@@ -36,7 +36,7 @@ function update(fastify, options, done) {
 
   fastify.post('/update', {
     schema : bodySchema,
-    preHandler : async (req, res) => utils.authCheck(req, res, req.g.db),
+    preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
       if (!utils.verifySignature(req.body.data, req.g.user.publicKey,
                                  req.body.sig)) {
@@ -60,7 +60,7 @@ function update(fastify, options, done) {
       const cmd = 'ipfs pin add ' + cids;
       child_process.execSync(cmd);
 
-      aUserFile.attach(req.g.aDataRoot.getOrInitUserDir(req.g.user.id));
+      aUserFile.attach(req.g.a.d.getOrInitUserDir(req.g.user.id));
       for (let cid of d.add_cids) {
         aUserFile.saveFile(cid);
       }
@@ -86,7 +86,7 @@ function publish(fastify, options, done) {
 
   fastify.post('/publish', {
     schema : schema,
-    preHandler : async (req, res) => utils.authCheck(req, res, req.g.db),
+    preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
       if (!utils.verifySignature(req.body.cid, req.g.user.publicKey,
                                  req.body.sig)) {

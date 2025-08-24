@@ -9,6 +9,7 @@ import DataRootDirAgent from './DataRootDirAgent.js';
 import {routes as idRoutes} from './r_id.js';
 import {routes as pinRoutes} from './r_pin.js';
 import {routes as uploadRoutes} from './r_upload.js';
+import TokenRecordAgent from './TokenRecordAgent.js';
 import UserRecordAgent from './UserRecordAgent.js';
 
 let command = new Command();
@@ -22,10 +23,11 @@ console.log("Root dir:", options.dir);
 
 let config = utils.readJsonFile(path.join(options.dir, "config.json"));
 config.root = options.dir;
-let db = new UserRecordAgent();
-db.init({root : config.root, users : config.users});
+let aUserRecord = new UserRecordAgent();
+aUserRecord.init({root : config.root, users : config.users});
 let aDataRoot = new DataRootDirAgent();
 aDataRoot.init({root : config.root, data_dir : config.data_dir});
+let aToken = new TokenRecordAgent();
 
 console.info("Creating API server...");
 
@@ -33,7 +35,10 @@ const fastify = Fastify({logger : true});
 
 fastify.addHook('preHandler', async (req, res) => {
   if (!req.g) {
-    req.g = {config : config, db : db, aDataRoot : aDataRoot};
+    req.g = {
+      config : config,
+      a : {r : {u : aUserRecord, t : aToken}, d : aDataRoot}
+    };
   }
 });
 

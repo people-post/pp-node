@@ -17,7 +17,7 @@ function register(fastify, options, done) {
   fastify.post('/register', {schema}, async (req, res) => {
     // TODO: Use payment to prevent naming being occupied without cost.
 
-    if (!req.g.db.hasQuota('register')) {
+    if (!req.g.a.r.u.hasQuota('register')) {
       if (req.body.key) {
         // Using api key
         if (req.body.key != req.g.config.api_key) {
@@ -28,7 +28,7 @@ function register(fastify, options, done) {
       }
     }
 
-    if (req.g.db.getUser(req.body.id)) {
+    if (req.g.a.r.u.getUser(req.body.id)) {
       return utils.makeErrorResponse(res, "Id already registered");
     }
 
@@ -37,8 +37,8 @@ function register(fastify, options, done) {
       return utils.makeErrorResponse(res, 'Invalid signature');
     }
 
-    req.g.db.addQuotaItem('register');
-    req.g.db.addUser(req.body.id, req.body.public_key);
+    req.g.a.r.u.addQuotaItem('register');
+    req.g.a.r.u.addUser(req.body.id, req.body.public_key);
   });
 
   done();
