@@ -1,7 +1,7 @@
 import * as utils from 'brief-js-lib';
 
-function ids(fastify, options, done) {
-  fastify.get('/ids', {
+function listUsers(fastify, options, done) {
+  fastify.get('/list', {
     handler : async (req, res) => {
       const users = req.g.a.r.u.getAll();
       return utils.makeResponse(res, {users : users});
@@ -11,7 +11,7 @@ function ids(fastify, options, done) {
   done();
 }
 
-function register(fastify, options, done) {
+function registerUser(fastify, options, done) {
   const schema = {
     body : {
       type : 'object',
@@ -56,8 +56,8 @@ function register(fastify, options, done) {
 }
 
 function routes(fastify, opts, done) {
-  fastify.register(ids);
-  fastify.register(register);
+  fastify.register(listUsers);
+  fastify.register(registerUser);
   done();
 }
 
