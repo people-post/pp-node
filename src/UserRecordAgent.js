@@ -7,7 +7,7 @@ import Quota from './Quota.js';
 export default class UserRecordAgent {
   #mUsers = new Map();
   #mQuotas = new Map();
-  #recordsFilePath = null;
+  #dataFilePath = null;
 
   init(config) {
     // Fields in config:
@@ -15,10 +15,10 @@ export default class UserRecordAgent {
     // users:
     this.#mUsers.clear();
     this.#mQuotas.clear();
-    this.#recordsFilePath = path.join(config.root, config.users);
-    let dUsers = utils.readJsonFile(this.#recordsFilePath);
-    for (let d of dUsers.list) {
-      this.#mUsers.set(d.id, d.public_key);
+    this.#dataFilePath = path.join(config.root, config.users);
+    let ds = utils.readJsonFile(this.#dataFilePath);
+    for (let d of ds.list) {
+      this.#mUsers.set(d.id, d);
     }
     // TODO: Load from config
     // 10 every 60s
@@ -30,9 +30,11 @@ export default class UserRecordAgent {
     return q && q.isAvailable();
   }
 
+  getAll() { return this.#mUsers.values().map(v => this.#toJson(v)).toArray(); }
+
   getUser(id) {
-    let key = this.#mUsers.get(id);
-    return key ? {id : id, publicKey : key} : null;
+    let v = this.#mUsers.get(id);
+    return v ? this.#toJson(v) : null;
   }
 
   addQuotaItem(key) {
@@ -42,17 +44,19 @@ export default class UserRecordAgent {
     }
   }
 
-  addUser(userId, publicKey) {
+  addUser(userId, name, publicKey) {
     // TODO: Use db later
     // Update user map in memory
-    this.#mUsers.set(userId, publicKey);
+    const d = {id : userId, name : name, public_key : publicKey};
+    this.#mUsers.set(userId, d);
 
     // Flush to db
-    let users = [];
-    for (let [k, v] of this.#mUsers) {
-      users.push({id : k, public_key : v});
-    }
-    fs.writeFileSync(this.#recordsFilePath,
-                     JSON.stringify({list : users}, null, 2));
+    const ds = this.#mUsers.values().toArray();
+    const content = JSON.stringify({list : ds}, null, 2);
+    fs.writeFileSync(this.#dataFilePath, content);
+  }
+
+  #toJson(dUser) {
+    return {id : dUser.id, name : dUser.name, publicKey : dUser.public_key};
   }
 }

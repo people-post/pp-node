@@ -1,5 +1,16 @@
 import * as utils from 'brief-js-lib';
 
+function ids(fastify, options, done) {
+  fastify.get('/ids', {
+    handler : async (req, res) => {
+      const users = req.g.a.r.u.getAll();
+      return utils.makeResponse(res, {users : users});
+    }
+  });
+
+  done();
+}
+
 function register(fastify, options, done) {
   const schema = {
     body : {
@@ -45,6 +56,7 @@ function register(fastify, options, done) {
 }
 
 function routes(fastify, opts, done) {
+  fastify.register(ids);
   fastify.register(register);
   done();
 }

@@ -6,9 +6,9 @@ import Fastify from "fastify";
 import path from "node:path";
 
 import DataRootDirAgent from './DataRootDirAgent.js';
-import {routes as idRoutes} from './r_id.js';
 import {routes as pinRoutes} from './r_pin.js';
 import {routes as uploadRoutes} from './r_upload.js';
+import {routes as userRoutes} from './r_user.js';
 import TokenRecordAgent from './TokenRecordAgent.js';
 import UserRecordAgent from './UserRecordAgent.js';
 
@@ -59,7 +59,7 @@ fastify.register(multipart, {
     parts : 100 // For multipart forms, the max number of parts (fields + files)
   }
 });
-fastify.register(idRoutes, {prefix : '/api/id'});
+fastify.register(userRoutes, {prefix : '/api/user'});
 fastify.register(pinRoutes, {prefix : '/api/pin'});
 fastify.register(uploadRoutes, {prefix : '/api/upload'});
 
