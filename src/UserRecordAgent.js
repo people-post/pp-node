@@ -54,6 +54,7 @@ export default class UserRecordAgent {
     const ds = this.#mUsers.values().toArray();
     const content = JSON.stringify({list : ds}, null, 2);
     fs.writeFileSync(this.#dataFilePath, content);
+    return this.#toJson(d);
   }
 
   #toJson(dUser) {

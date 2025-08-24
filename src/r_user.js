@@ -17,39 +17,63 @@ function registerUser(fastify, options, done) {
       type : 'object',
       properties : {
         id : {type : 'string'},
-        key : {type : 'string'},
+        name : {type : 'string'},
         public_key : {type : 'string'},
         signature : {type : 'string'}
       },
-      required : [ 'id', 'public_key', 'signature' ]
+      required : [ 'id', 'name', 'public_key', 'signature' ]
     }
   };
 
-  fastify.post('/register', {schema}, async (req, res) => {
-    // TODO: Use payment to prevent naming being occupied without cost.
-
-    if (!req.g.a.r.u.hasQuota('register')) {
-      if (req.body.key) {
-        // Using api key
-        if (req.body.key != req.g.config.api_key) {
-          return utils.makeErrorResponse(res, 'Key error');
-        }
-      } else {
+  fastify.post('/register', {
+    schema : schema,
+    handler : async (req, res) => {
+      if (!req.g.a.r.u.hasQuota('register')) {
         return utils.makeErrorResponse(res, 'Quota limit');
       }
-    }
 
-    if (req.g.a.r.u.getUser(req.body.id)) {
-      return utils.makeErrorResponse(res, "Id already registered");
-    }
+      if (req.g.a.r.u.getUser(req.body.id)) {
+        return utils.makeErrorResponse(res, "Id already registered");
+      }
 
-    if (!utils.verifySignature(req.body.cid, req.body.public_key,
-                               req.body.signature)) {
-      return utils.makeErrorResponse(res, 'Invalid signature');
-    }
+      if (!utils.verifySignature(req.body.cid, req.body.public_key,
+                                 req.body.signature)) {
+        return utils.makeErrorResponse(res, 'Invalid signature');
+      }
 
-    req.g.a.r.u.addQuotaItem('register');
-    req.g.a.r.u.addUser(req.body.id, req.body.public_key);
+      req.g.a.r.u.addQuotaItem('register');
+      const u =
+          req.g.a.r.u.addUser(req.body.id, req.body.name, req.body.public_key);
+      return utils.makeResponse(res, {user : u});
+    }
+  });
+
+  done();
+}
+
+function updateUser(fastify, options, done) {
+  const schema = {
+    body : {
+      type : 'object',
+      properties : {
+        id : {type : 'string'},
+        name : {type : 'string'},
+        public_key : {type : 'string'},
+        signature : {type : 'string'}
+      },
+      required : [ 'id', 'name', 'public_key', 'signature' ]
+    }
+  };
+
+  fastify.post('/update', {
+    schema : schema,
+    preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
+    handler : async (req, res) => {
+      // TODO: To support user changing their identity while
+      // keep old data.
+      const u = req.g.user;
+      return utils.makeResponse(res, {user : u});
+    }
   });
 
   done();
@@ -58,6 +82,7 @@ function registerUser(fastify, options, done) {
 function routes(fastify, opts, done) {
   fastify.register(listUsers);
   fastify.register(registerUser);
+  fastify.register(updateUser);
   done();
 }
 
