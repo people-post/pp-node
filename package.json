@@ -4,6 +4,7 @@
         "@fastify/cors": "^11.0.1",
         "@fastify/multipart": "^9.0.3",
         "@fastify/schedule": "^6.0.0",
+        "@fastify/static": "^8.2.0",
         "@noble/post-quantum": "^0.4.1",
         "ajv": "^8.17.1",
         "brief-js-lib": "github:nfsc-brief-web3/brief-js-lib",

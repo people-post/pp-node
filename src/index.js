@@ -1,5 +1,6 @@
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart';
+import FastifyStatic from '@fastify/static';
 import * as utils from 'brief-js-lib';
 import {Command} from 'commander';
 import Fastify from "fastify";
@@ -49,6 +50,8 @@ fastify.register(cors, {
   methods : [ 'GET', 'POST', 'DELETE', 'OPTIONS' ],
   strictPreflight : false
 });
+
+fastify.register(FastifyStatic, {root : path.join(config.root, 'static')});
 
 fastify.register(multipart, {
   limits : {
