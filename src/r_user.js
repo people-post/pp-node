@@ -1,5 +1,16 @@
 import * as utils from 'brief-js-lib';
 
+function getUser(fastify, options, done) {
+  fastify.get('/user', {
+    handler : async (req, res) => {
+      const user = req.g.a.r.u.getUser(req.query.id);
+      return utils.makeResponse(res, {user : user});
+    }
+  });
+
+  done();
+}
+
 function listUsers(fastify, options, done) {
   fastify.get('/list', {
     handler : async (req, res) => {
@@ -80,6 +91,7 @@ function updateUser(fastify, options, done) {
 }
 
 function routes(fastify, opts, done) {
+  fastify.register(getUser);
   fastify.register(listUsers);
   fastify.register(registerUser);
   fastify.register(updateUser);
