@@ -1,7 +1,16 @@
 import * as utils from 'brief-js-lib';
 
 function getUser(fastify, options, done) {
-  fastify.get('/user', {
+  const schema = {
+    query : {
+      type : 'object',
+      properties : {id : {type : 'string'}},
+      required : [ 'id' ]
+    }
+  };
+
+  fastify.get('/get', {
+    schema : schema,
     handler : async (req, res) => {
       const user = req.g.a.r.u.getUser(req.query.id);
       return utils.makeResponse(res, {user : user});
