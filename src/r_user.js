@@ -48,6 +48,10 @@ function registerUser(fastify, options, done) {
   fastify.post('/register', {
     schema : schema,
     handler : async (req, res) => {
+      if (!req.g.config.enable_register) {
+        return utils.makeErrorResponse(res, 'Registration disabled');
+      }
+
       if (!req.g.a.r.u.hasQuota('register')) {
         return utils.makeErrorResponse(res, 'Quota limit');
       }

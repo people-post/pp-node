@@ -1,5 +1,6 @@
 {
     "debug": true,
+    "enable_register": true,
     "host": "::",
     "port": 9097,
     "users": "users.json",
