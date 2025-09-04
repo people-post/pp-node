@@ -49,20 +49,20 @@ function registerUser(fastify, options, done) {
     schema : schema,
     handler : async (req, res) => {
       if (!req.g.config.enable_register) {
-        return utils.makeErrorResponse(res, 'Registration disabled');
+        return utils.makeDevErrorResponse(res, 'Registration disabled');
       }
 
       if (!req.g.a.r.u.hasQuota('register')) {
-        return utils.makeErrorResponse(res, 'Quota limit');
+        return utils.makeLimitationResponse(res, 'E_LIMIT_REACHED');
       }
 
       if (req.g.a.r.u.getUser(req.body.id)) {
-        return utils.makeErrorResponse(res, "Id already registered");
+        return utils.makeDevErrorResponse(res, "Id already registered");
       }
 
       if (!utils.verifySignature(req.body.cid, req.body.public_key,
                                  req.body.signature)) {
-        return utils.makeErrorResponse(res, 'Invalid signature');
+        return utils.makeDevErrorResponse(res, 'Invalid signature');
       }
 
       req.g.a.r.u.addQuotaItem('register');

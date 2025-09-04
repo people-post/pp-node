@@ -39,20 +39,20 @@ function update(fastify, options, done) {
     handler : async (req, res) => {
       if (!utils.verifySignature(req.body.data, req.g.user.publicKey,
                                  req.body.sig)) {
-        return utils.makeErrorResponse(res, 'Failed to verify signature');
+        return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 
       let d;
       try {
         d = JSON.parse(req.body.data);
       } catch (e) {
-        return utils.makeErrorResponse(res, 'Invalid data format');
+        return utils.makeDevErrorResponse(res, 'Invalid data format');
       }
 
       const valid = objValidate(d);
       if (!valid) {
         let msg = objValidate.errors.map(x => x.message).join(' ');
-        return utils.makeErrorResponse(res, msg);
+        return utils.makeDevErrorResponse(res, msg);
       }
 
       req.g.a.ipfs.pinCids(d.add_cids);
@@ -87,7 +87,7 @@ function publish(fastify, options, done) {
     handler : async (req, res) => {
       if (!utils.verifySignature(req.body.cid, req.g.user.publicKey,
                                  req.body.sig)) {
-        return utils.makeErrorResponse(res, 'Failed to verify signature');
+        return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 
       req.g.a.ipfs.publishName('self', req.body.cid);

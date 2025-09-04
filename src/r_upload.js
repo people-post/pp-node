@@ -27,7 +27,7 @@ function file(fastify, opts, done) {
       const sig = data.fields.sig.value;
 
       if (!utils.verifySignature(token, req.g.user.publicKey, sig)) {
-        return utils.makeErrorResponse(res, 'Failed to verify signature');
+        return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 
       let dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
@@ -52,7 +52,7 @@ function image(fastify, opts, done) {
       const sig = data.fields.sig.value;
 
       if (!utils.verifySignature(token, req.g.user.publicKey, sig)) {
-        return utils.makeErrorResponse(res, 'Failed to verify signature');
+        return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 
       const dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
@@ -74,7 +74,7 @@ function video(fastify, opts, done) {
       const token = data.fields.token.value;
       const sig = data.fields.sig.value;
       if (!utils.verifySignature(token, req.g.user.publicKey, sig)) {
-        return utils.makeErrorResponse(res, 'Faield to verify signature');
+        return utils.makeDevErrorResponse(res, 'Faield to verify signature');
       }
     }
   });
@@ -100,7 +100,7 @@ function json(fastify, opts, done) {
     handler : async (req, res) => {
       if (!utils.verifySignature(req.body.data, req.g.user.publicKey,
                                  req.body.sig)) {
-        return utils.makeErrorResponse(res, 'sig not verified');
+        return utils.makeDevErrorResponse(res, 'sig not verified');
       }
 
       let dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
