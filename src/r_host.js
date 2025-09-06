@@ -1,6 +1,6 @@
 import * as utils from 'brief-js-lib';
 
-function getConfig(fastify, options, done) {
+function getInfo(fastify, options, done) {
   const schema = {
     query : {
       type : 'object',
@@ -9,11 +9,14 @@ function getConfig(fastify, options, done) {
     }
   };
 
-  fastify.get('/config', {
+  fastify.get('/info', {
     handler : async (req, res) => {
+      // TODO: Dynamically get peer id
       return utils.makeResponse(res, {
         enable_register : req.g.config.enable_register,
-        enable_reclaim : req.g.config.enable_reclaim
+        enable_reclaim : req.g.config.enable_reclaim,
+        peer_id :
+            'k51qzi5uqu5dged5qgsvt2mvkdsmfxnvdrr1o1h6ak1fbcpsqsbyj45bhn66yb'
       });
     }
   });
@@ -22,7 +25,7 @@ function getConfig(fastify, options, done) {
 }
 
 function routes(fastify, opts, done) {
-  fastify.register(getConfig);
+  fastify.register(getInfo);
   done();
 }
 
