@@ -8,6 +8,7 @@ import path from "node:path";
 
 import DataRootDirAgent from './DataRootDirAgent.js';
 import IpfsAgent from './IpfsAgent.js';
+import {routes as hostRoutes} from './r_host.js';
 import {routes as pinRoutes} from './r_pin.js';
 import {routes as uploadRoutes} from './r_upload.js';
 import {routes as userRoutes} from './r_user.js';
@@ -64,6 +65,7 @@ fastify.register(multipart, {
     parts : 100 // For multipart forms, the max number of parts (fields + files)
   }
 });
+fastify.register(hostRoutes, {prefix : '/api/host'});
 fastify.register(userRoutes, {prefix : '/api/user'});
 fastify.register(pinRoutes, {prefix : '/api/pin'});
 fastify.register(uploadRoutes, {prefix : '/api/upload'});

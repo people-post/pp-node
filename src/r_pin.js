@@ -3,7 +3,7 @@ import * as utils from 'brief-js-lib';
 
 import UserFileAgent from './UserFileAgent.js';
 
-function update(fastify, options, done) {
+function addPin(fastify, options, done) {
   const bodySchema = {
     body : {
       type : 'object',
@@ -19,21 +19,21 @@ function update(fastify, options, done) {
   const objSchema = {
     type : 'object',
     properties : {
-      add_cids : {
+      cids : {
         type : 'array',
         minItems : 1,
         maxItems : 100,
         items : {type : 'string'}
       }
     },
-    required : [ 'add_cids' ]
+    required : [ 'cids' ]
   };
 
   const ajv = new Ajv();
   const objValidate = ajv.compile(objSchema);
   const aUserFile = new UserFileAgent();
 
-  fastify.post('/update', {
+  fastify.post('/add', {
     schema : bodySchema,
     preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
@@ -55,10 +55,10 @@ function update(fastify, options, done) {
         return utils.makeDevErrorResponse(res, msg);
       }
 
-      req.g.a.ipfs.pinCids(d.add_cids);
+      req.g.a.ipfs.pinCids(d.cids);
 
       aUserFile.attach(req.g.a.d.getOrInitUserDir(req.g.user.id));
-      for (let cid of d.add_cids) {
+      for (let cid of d.cids) {
         aUserFile.saveFile(cid, req.g.a.ipfs);
       }
 
@@ -99,7 +99,7 @@ function publish(fastify, options, done) {
 }
 
 function routes(fastify, opts, done) {
-  fastify.register(update);
+  fastify.register(addPin);
   fastify.register(publish);
   done();
 }
