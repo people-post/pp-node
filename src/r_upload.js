@@ -24,9 +24,9 @@ function file(fastify, opts, done) {
     handler : async (req, res) => {
       const data = await req.file();
       const token = data.fields.token.value;
-      const sig = data.fields.sig.value;
+      const signature = data.fields.signature.value;
 
-      if (!utils.verifySignature(token, req.g.user.publicKey, sig)) {
+      if (!utils.verifySignature(token, req.g.user.publicKey, signature)) {
         return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 
@@ -49,9 +49,9 @@ function image(fastify, opts, done) {
     handler : async (req, res) => {
       const data = await req.file();
       const token = data.fields.token.value;
-      const sig = data.fields.sig.value;
+      const signature = data.fields.signature.value;
 
-      if (!utils.verifySignature(token, req.g.user.publicKey, sig)) {
+      if (!utils.verifySignature(token, req.g.user.publicKey, signature)) {
         return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 
@@ -72,8 +72,8 @@ function video(fastify, opts, done) {
     handler : async (req, res) => {
       const data = await req.file();
       const token = data.fields.token.value;
-      const sig = data.fields.sig.value;
-      if (!utils.verifySignature(token, req.g.user.publicKey, sig)) {
+      const signature = data.fields.signature.value;
+      if (!utils.verifySignature(token, req.g.user.publicKey, signature)) {
         return utils.makeDevErrorResponse(res, 'Faield to verify signature');
       }
     }
@@ -89,7 +89,7 @@ function json(fastify, opts, done) {
       properties : {
         data : {type : 'string'},
         id : {type : 'string'},
-        sig : {type : 'string'}
+        signature : {type : 'string'}
       }
     }
   };
@@ -99,8 +99,8 @@ function json(fastify, opts, done) {
     preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
       if (!utils.verifySignature(req.body.data, req.g.user.publicKey,
-                                 req.body.sig)) {
-        return utils.makeDevErrorResponse(res, 'sig not verified');
+                                 req.body.signature)) {
+        return utils.makeDevErrorResponse(res, 'signature not verified');
       }
 
       let dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
