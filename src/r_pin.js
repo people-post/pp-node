@@ -1,5 +1,5 @@
 import Ajv from 'ajv';
-import * as utils from 'brief-js-lib';
+import * as utils from 'pp-js-lib';
 
 import UserFileAgent from './UserFileAgent.js';
 

@@ -1,5 +1,5 @@
 {
-    "name": "personal-node",
+    "name": "pp-node",
     "type": "module",
     "dependencies": {
         "@fastify/cors": "^11.0.1",

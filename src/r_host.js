@@ -1,4 +1,4 @@
-import * as utils from 'brief-js-lib';
+import * as utils from 'pp-js-lib';
 
 function getInfo(fastify, options, done) {
   const schema = {

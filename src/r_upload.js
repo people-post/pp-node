@@ -1,8 +1,8 @@
-import * as utils from 'brief-js-lib';
 import fs from "node:fs";
 import os from 'node:os';
 import path from 'node:path';
 import {pipeline} from 'node:stream/promises';
+import * as utils from 'pp-js-lib';
 
 import ImageAgent from './ImageAgent.js';
 
