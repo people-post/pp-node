@@ -1,4 +1,4 @@
-# personal-node
+# pp-node
 For personal data hosting
 
 ```mermaid
