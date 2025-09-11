@@ -1,5 +1,5 @@
 # pp-node
-For personal data hosting
+The decentralized personal data hosting node
 
 ```mermaid
 graph TD;
