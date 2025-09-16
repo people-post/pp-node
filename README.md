@@ -2,18 +2,22 @@
 The decentralized personal data hosting node
 
 ```mermaid
-graph TD;
-    USER((User)):::User-- New post -->THIS(Personal node):::Server;
-    linkStyle 0 color:salmon;
-    classDef User color:blue;
-    classDef Server fill:salmon,color:white;
+graph LR
+  USER((User)):::User-- New post -->THIS(Personal node):::Server
+  THIS <--> CLOUD(((Cloud))):::Cloud
+  linkStyle 0 color:#222
+  classDef User fill:#EEF,color:blue
+  classDef Server fill:#EEE,color:#333,stroke:#222
+  classDef Cloud fill:#EFE,color:#5F5,stroke:#9F9,font-size:40pt
 ```
 
 ## API references
-### Host
-#### GET `api/host/info`
+<details>
+    <summary>api/host</summary>
+    
+### GET `api/host/info`
 - Query:
-`id`: string, required.
+  - `id`: string, optional. If provided, return host info for particular user id.
 
 - Return: 
 ```
@@ -25,10 +29,15 @@ graph TD;
   }
 }
 ```
-### User
-#### GET `api/user/get`
+</details>
+<details>
+    <summary>api/user</summary>
+
+### GET `api/user/get`
 - Query:
-`id`: string, required.
+  - `id`: string, optional.
+  - `name`: string, optional.
+  - One of `id` and `name` must be provided.
 
 - Return: 
 ```
@@ -41,7 +50,7 @@ graph TD;
 }
 ```
 
-#### GET `api/user/list`
+### GET `api/user/list`
 - Return:
 ```
 {
@@ -49,14 +58,27 @@ graph TD;
 }
 ```
 
-#### POST `api/user/register`
+### POST `api/user/register`
+- Content-Type: `application/json`
+- Body:
+  - `id`:
+  - `name`:
+  - `public_key`:
+  - `signature`:
+- Return:
+ ```
+{
+}
+```  
+
+### POST `api/user/update`
 - Content-Type: `application/json`
 
-#### POST `api/user/update`
-- Content-Type: `application/json`
+</details>
+<details>
+    <summary>api/upload</summary>
 
-### Upload
-#### GET `api/upload/token`
+### GET `api/upload/token`
 - Return:
 ```
 {
@@ -64,8 +86,12 @@ graph TD;
 }
 ```
 
-#### POST `api/upload/file`
+### POST `api/upload/file`
 - Content-Type: `multipart/form-data`
+- Body:
+  - `id`: User id, string, required.
+  - `token`: Got from `api/upload/token`, string, required.
+  - `signature`: Signature of `token`, string, required.
 - Return:
 ```
 {
@@ -73,18 +99,26 @@ graph TD;
 }
 ```
 
-#### POST `api/upload/image`
+### POST `api/upload/image`
 - Content-Type: `multipart/form-data`
+- Body:
+  - `id`: User id, string, required.
+  - `token`: Got from `api/upload/token`, string, required.
+  - `signature`: Signature of `token`, string, required.
 
-#### POST `api/upload/video`
+### POST `api/upload/video`
 - Content-Type: `multipart/form-data`
+- Body:
+  - `id`: User id, string, required.
+  - `token`: Got from `api/upload/token`, string, required.
+  - `signature`: Signature of `token`, string, required.
 
-#### POST `api/upload/json`
+### POST `api/upload/json`
 - Content-Type: `application/json`
 - Body:
-  `data`:
-  `id`:
-  `signature`:
+  - `id`: User id, string, required.
+  - `data`: Serialized JSON dict, string, required.
+  - `signature`: Signature of `data`, string, required.
 - Return:
 ```
 {
@@ -92,6 +126,22 @@ graph TD;
 }
 ```
 
-### Pin
-#### POST `api/pin/add`
+</details>
+<details>
+    <summary>api/pin</summary>
+
+### POST `api/pin/add`
 - Content-Type: `application/json`
+- Body:
+  - `id`: User id, string, required.
+  - `data`: Serialized JSON dict, string, required.
+  - `signature`: Signature of `data`, string, required.
+- Expanded data:
+  - `cids`: Array of cid strings, required, min lengh: 1.
+- Return:
+```
+{
+}
+```
+
+</details>
