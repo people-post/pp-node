@@ -39,7 +39,8 @@ function registerUser(fastify, options, done) {
         id : {type : 'string'},
         name : {type : 'string'},
         public_key : {type : 'string'},
-        signature : {type : 'string'}
+        signature : {type : 'string'},
+        peer_key : {type : 'string'}
       },
       required : [ 'id', 'name', 'public_key', 'signature' ]
     }
@@ -66,6 +67,12 @@ function registerUser(fastify, options, done) {
       }
 
       req.g.a.r.u.addQuotaItem('register');
+
+      if (req.body.peer_key) {
+        // Use user provided key pair
+      } else {
+        // Generate new key pair
+      }
       const u =
           req.g.a.r.u.addUser(req.body.id, req.body.name, req.body.public_key);
       return utils.makeResponse(res, {user : u});

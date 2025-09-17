@@ -1,6 +1,6 @@
 [Unit]
-Description=NFSC brief personal node
-Documentation=https://www.nfscbrief.com/
+Description=People post personal node
+Documentation=https://people-post.github.io/
 After=network.target
 
 [Service]
