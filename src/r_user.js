@@ -25,7 +25,7 @@ function getUser(fastify, options, done) {
       if (req.query.id) {
         user = req.g.a.r.u.getUserById(req.query.id);
       } else {
-        user = req.g.a.r.u.getUserByName(req.query.id);
+        user = req.g.a.r.u.getUserByName(req.query.name);
       }
       return utils.makeResponse(res, {user : user});
     }
