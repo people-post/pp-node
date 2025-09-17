@@ -32,9 +32,21 @@ export default class UserRecordAgent {
 
   getAll() { return this.#mUsers.values().map(v => this.#toJson(v)).toArray(); }
 
-  getUser(id) {
+  getUserById(id) {
     let v = this.#mUsers.get(id);
     return v ? this.#toJson(v) : null;
+  }
+
+  getUserByName(name) {
+    // TODO: Improve efficiency
+    let u;
+    for (let v of this.#mUsers.values()) {
+      if (v.name == name) {
+        u = v;
+        break;
+      }
+    }
+    return u ? this.#toJson(u) : null;
   }
 
   addQuotaItem(key) {

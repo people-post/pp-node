@@ -3,16 +3,30 @@ import * as utils from 'pp-js-lib';
 function getUser(fastify, options, done) {
   const schema = {
     query : {
-      type : 'object',
-      properties : {id : {type : 'string'}},
-      required : [ 'id' ]
+      oneOf : [
+        {
+          type : 'object',
+          properties : {id : {type : 'string'}},
+          required : [ 'id' ]
+        },
+        {
+          type : 'object',
+          properties : {name : {type : 'string'}},
+          required : [ 'name' ]
+        }
+      ]
     }
   };
 
   fastify.get('/get', {
     schema : schema,
     handler : async (req, res) => {
-      const user = req.g.a.r.u.getUser(req.query.id);
+      let user;
+      if (req.query.id) {
+        user = req.g.a.r.u.getUserById(req.query.id);
+      } else {
+        user = req.g.a.r.u.getUserByName(req.query.id);
+      }
       return utils.makeResponse(res, {user : user});
     }
   });
@@ -57,8 +71,12 @@ function registerUser(fastify, options, done) {
         return utils.makeLimitationResponse(res, 'E_LIMIT_REACHED');
       }
 
-      if (req.g.a.r.u.getUser(req.body.id)) {
+      if (req.g.a.r.u.getUserById(req.body.id)) {
         return utils.makeDevErrorResponse(res, "Id already registered");
+      }
+
+      if (req.g.a.r.u.getUserByName(req.body.name)) {
+        return utils.makeDevErrorResponse(res, "Name already taken");
       }
 
       if (!utils.verifySignature(req.body.cid, req.body.public_key,
