@@ -10,9 +10,9 @@ function addPin(fastify, options, done) {
       properties : {
         data : {type : 'string'},
         id : {type : 'string'},
-        sig : {type : 'string'}
+        signature : {type : 'string'}
       },
-      required : [ 'data', 'id', 'sig' ]
+      required : [ 'data', 'id', 'signature' ]
     }
   };
 
@@ -38,7 +38,7 @@ function addPin(fastify, options, done) {
     preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
       if (!utils.verifySignature(req.body.data, req.g.user.publicKey,
-                                 req.body.sig)) {
+                                 req.body.signature)) {
         return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 
@@ -76,7 +76,7 @@ function publish(fastify, options, done) {
       properties : {
         cid : {type : 'string'},
         id : {type : 'string'},
-        sig : {type : 'string'}
+        signature : {type : 'string'}
       },
     }
   };
@@ -86,7 +86,7 @@ function publish(fastify, options, done) {
     preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
       if (!utils.verifySignature(req.body.cid, req.g.user.publicKey,
-                                 req.body.sig)) {
+                                 req.body.signature)) {
         return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 

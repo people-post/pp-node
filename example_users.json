@@ -2,6 +2,7 @@
     "list": [{
         "id": "12D3KooWDeGhHT4xzpVV1nEwVB4rQyRnL7zDcYqUAYYCmDLyzNp5",
         "name": "test",
-        "public_key": "xxx"
+        "public_key": "xxx",
+        "peer_id": "12D3KooWDeGhHT4xzpVV1nEwVB4rQyRnL7zDcYqUAYYCmDLyzNp5"
     }]
 }
