@@ -56,10 +56,10 @@ export default class UserRecordAgent {
     }
   }
 
-  addUser(userId, name, publicKey) {
-    // TODO: Use db later
-    // Update user map in memory
-    const d = {id : userId, name : name, public_key : publicKey};
+  setUser(userId, name, publicKey, peerId) {
+    // Update user map in memory, format is in sync with users.json
+    const d =
+        {id : userId, name : name, public_key : publicKey, peer_id : peerId};
     this.#mUsers.set(userId, d);
 
     // Flush to db
@@ -70,6 +70,11 @@ export default class UserRecordAgent {
   }
 
   #toJson(dUser) {
-    return {id : dUser.id, name : dUser.name, publicKey : dUser.public_key};
+    return {
+      id : dUser.id,
+      name : dUser.name,
+      publicKey : dUser.public_key,
+      peerId : dUser.peer_id
+    };
   }
 }
