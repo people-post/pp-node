@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as utils from 'pp-js-lib';
 
+import User from './data_types/User.js';
 import Quota from './Quota.js';
 
 export default class UserRecordAgent {
@@ -18,7 +19,7 @@ export default class UserRecordAgent {
     this.#dataFilePath = path.join(config.root, config.users);
     let ds = utils.readJsonFile(this.#dataFilePath);
     for (let d of ds.list) {
-      this.#mUsers.set(d.id, d);
+      this.#mUsers.set(d.id, new User(d));
     }
     // TODO: Load from config
     // 10 every 60s
@@ -30,23 +31,18 @@ export default class UserRecordAgent {
     return q && q.isAvailable();
   }
 
-  getAll() { return this.#mUsers.values().map(v => this.#toJson(v)).toArray(); }
+  getAll() { return this.#mUsers.values().toArray(); }
 
-  getUserById(id) {
-    let v = this.#mUsers.get(id);
-    return v ? this.#toJson(v) : null;
-  }
+  getUserById(id) { return this.#mUsers.get(id); }
 
   getUserByName(name) {
     // TODO: Improve efficiency
-    let u;
     for (let v of this.#mUsers.values()) {
-      if (v.name == name) {
-        u = v;
-        break;
+      if (v.getName() == name) {
+        return v;
       }
     }
-    return u ? this.#toJson(u) : null;
+    return null;
   }
 
   addQuotaItem(key) {
@@ -58,23 +54,14 @@ export default class UserRecordAgent {
 
   setUser(userId, name, publicKey, peerId) {
     // Update user map in memory, format is in sync with users.json
-    const d =
-        {id : userId, name : name, public_key : publicKey, peer_id : peerId};
-    this.#mUsers.set(userId, d);
+    const u = new User(
+        {id : userId, name : name, public_key : publicKey, peer_id : peerId});
+    this.#mUsers.set(userId, u);
 
     // Flush to db
-    const ds = this.#mUsers.values().toArray();
+    const ds = this.#mUsers.values().map(v => v.toJson()).toArray();
     const content = JSON.stringify({list : ds}, null, 2);
     fs.writeFileSync(this.#dataFilePath, content);
-    return this.#toJson(d);
-  }
-
-  #toJson(dUser) {
-    return {
-      id : dUser.id,
-      name : dUser.name,
-      publicKey : dUser.public_key,
-      peerId : dUser.peer_id
-    };
+    return u;
   }
 }

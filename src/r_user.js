@@ -22,13 +22,13 @@ function getUser(fastify, options, done) {
   fastify.get('/get', {
     schema : schema,
     handler : async (req, res) => {
-      let user;
+      let u;
       if (req.query.id) {
-        user = req.g.a.r.u.getUserById(req.query.id);
+        u = req.g.a.r.u.getUserById(req.query.id);
       } else {
-        user = req.g.a.r.u.getUserByName(req.query.name);
+        u = req.g.a.r.u.getUserByName(req.query.name);
       }
-      return utils.makeResponse(res, {user : user});
+      return utils.makeResponse(res, {user : u ? u.toJson() : null});
     }
   });
 
@@ -38,8 +38,11 @@ function getUser(fastify, options, done) {
 function listUsers(fastify, options, done) {
   fastify.get('/list', {
     handler : async (req, res) => {
-      const users = req.g.a.r.u.getAll();
-      return utils.makeResponse(res, {users : users});
+      let dUsers = [];
+      for (let u of req.g.a.r.u.getAll()) {
+        dUsers.push(u.toJson());
+      }
+      return utils.makeResponse(res, {users : dUsers});
     }
   });
 
@@ -79,10 +82,10 @@ function registerUser(fastify, options, done) {
         return utils.makeDevErrorResponse(res, 'Registration disabled');
       }
 
-      if (!utils.verifySignature(req.body.data, req.body.public_key,
-                                 req.body.signature)) {
-        return utils.makeDevErrorResponse(res, 'Invalid signature');
-      }
+      // if (!utils.verifySignature(req.body.data, req.body.public_key,
+      //                            req.body.signature)) {
+      //   return utils.makeDevErrorResponse(res, 'Invalid signature');
+      // }
 
       let d;
       try {
@@ -120,7 +123,7 @@ function registerUser(fastify, options, done) {
       //}
 
       const u = req.g.a.r.u.setUser(d.id, d.name, req.body.public_key, peerId);
-      return utils.makeResponse(res, {user : u});
+      return utils.makeResponse(res, {user : u.toJson()});
     }
   });
 
