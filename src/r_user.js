@@ -82,10 +82,10 @@ function registerUser(fastify, options, done) {
         return utils.makeDevErrorResponse(res, 'Registration disabled');
       }
 
-      // if (!utils.verifySignature(req.body.data, req.body.public_key,
-      //                            req.body.signature)) {
-      //   return utils.makeDevErrorResponse(res, 'Invalid signature');
-      // }
+      if (!utils.verifySignature(req.body.data, req.body.public_key,
+                                 req.body.signature)) {
+        return utils.makeDevErrorResponse(res, 'Invalid signature');
+      }
 
       let d;
       try {
