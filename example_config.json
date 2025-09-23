@@ -3,6 +3,8 @@
     "enable_register": true,
     "host": "::",
     "port": 9097,
+    "ssl_key": "ssl.key",
+    "ssl_cert": "ssl.cert",
     "users": "users.json",
     "data_dir": "/home/hongwei/data/test_pn_data",
     "api_key": "abc"
