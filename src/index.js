@@ -2,8 +2,9 @@ import cors from '@fastify/cors'
 import multipart from '@fastify/multipart';
 import FastifyStatic from '@fastify/static';
 import {Command} from 'commander';
-import Fastify from "fastify";
-import path from "node:path";
+import Fastify from 'fastify';
+import fs from 'node:fs';
+import path from 'node:path';
 import * as utils from 'pp-js-lib';
 
 import DataRootDirAgent from './DataRootDirAgent.js';
@@ -35,7 +36,13 @@ const aIpfs = new IpfsAgent();
 
 console.info("Creating API server...");
 
-const fastify = Fastify({logger : true});
+const fastify = Fastify({
+  logger : true,
+  https : {
+    key : fs.readFileSync(path.join(config.root, config.ssl_key)),
+    cert : fs.readFileSync(path.join(config.root, config.ssl_cert))
+  }
+});
 
 fastify.addHook('preHandler', async (req, res) => {
   if (!req.g) {
