@@ -33,16 +33,17 @@ const aDataRoot = new DataRootDirAgent();
 aDataRoot.init({root : config.root, data_dir : config.data_dir});
 const aToken = new TokenRecordAgent();
 const aIpfs = new IpfsAgent();
+let httpsConfig = null;
+if (config.ssl_key && config.ssl_cert) {
+  httpsConfig = {
+    key : fs.readFileSync(path.join(config.root, config.ssl_key)),
+    cert : fs.readFileSync(path.join(config.root, config.ssl_cert))
+  };
+}
 
 console.info("Creating API server...");
 
-const fastify = Fastify({
-  logger : true,
-  https : {
-    key : fs.readFileSync(path.join(config.root, config.ssl_key)),
-    cert : fs.readFileSync(path.join(config.root, config.ssl_cert))
-  }
-});
+const fastify = Fastify({logger : true, https : httpsConfig});
 
 fastify.addHook('preHandler', async (req, res) => {
   if (!req.g) {
