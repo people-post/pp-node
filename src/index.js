@@ -45,6 +45,10 @@ console.info("Creating API server...");
 
 const fastify = Fastify({logger : true, https : httpsConfig});
 
+// a: agent
+//   r: record
+//   d: data
+//   ipfs: ipfs
 fastify.addHook('preHandler', async (req, res) => {
   if (!req.g) {
     req.g = {
