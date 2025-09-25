@@ -14,10 +14,15 @@ function getInfo(fastify, options, done) {
       // TODO: Dynamically get peer id
       return utils.makeResponse(res, {
         info : {
-          publisher: 'PEER',  // PEER/GROUP
-          storages: ['TEXT', 'IMAGE', 'FILE'], // TEXT/IMAGE/AUDIO/VIDEO/FILE
-          is_register_enabled : req.g.config.enable_register,
-          is_reclaim_enabled : req.g.config.enable_reclaim,
+          register : {
+            type : 'PEER', // PEER/GROUP
+            is_enabled : req.g.config.enable_register,
+            is_reclaim_enabled : req.g.config.enable_reclaim,
+          },
+          publisher : {
+            is_enabled : true,
+          },
+          storages : [ 'TEXT', 'IMAGE', 'FILE' ], // TEXT/IMAGE/AUDIO/VIDEO/FILE
           peer_id :
               'k51qzi5uqu5dged5qgsvt2mvkdsmfxnvdrr1o1h6ak1fbcpsqsbyj45bhn66yb'
         }
