@@ -10,7 +10,7 @@ function token(fastify, opts, done) {
   fastify.get('/token', {
     preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
-      const token = req.g.a.r.t.initFor(req.g.user.id);
+      const token = req.g.a.r.t.initFor(req.g.user.getId());
       return utils.makeResponse(res, {token : token});
     }
   });
@@ -26,14 +26,14 @@ function file(fastify, opts, done) {
       const token = data.fields.token.value;
       const signature = data.fields.signature.value;
 
-      if (!utils.verifySignature(token, req.g.user.publicKey, signature)) {
+      if (!utils.verifySignature(token, req.g.user.getPublicKey(), signature)) {
         return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 
       let dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
       let filePath = path.join(dirPath, "dummy");
       await pipeline(data.file, fs.createWriteStream(filePath));
-      const cid = req.g.r.ipfs.addFile(filePath);
+      const cid = req.g.a.ipfs.addFile(filePath);
       return utils.makeResponse(res, {cid : cid.toString()});
     }
   });
@@ -51,7 +51,7 @@ function image(fastify, opts, done) {
       const token = data.fields.token.value;
       const signature = data.fields.signature.value;
 
-      if (!utils.verifySignature(token, req.g.user.publicKey, signature)) {
+      if (!utils.verifySignature(token, req.g.user.getPublicKey(), signature)) {
         return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 
@@ -73,7 +73,7 @@ function video(fastify, opts, done) {
       const data = await req.file();
       const token = data.fields.token.value;
       const signature = data.fields.signature.value;
-      if (!utils.verifySignature(token, req.g.user.publicKey, signature)) {
+      if (!utils.verifySignature(token, req.g.user.getPublicKey(), signature)) {
         return utils.makeDevErrorResponse(res, 'Faield to verify signature');
       }
     }
@@ -98,7 +98,7 @@ function json(fastify, opts, done) {
     schema : schema,
     preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
-      if (!utils.verifySignature(req.body.data, req.g.user.publicKey,
+      if (!utils.verifySignature(req.body.data, req.g.user.getPublicKey(),
                                  req.body.signature)) {
         return utils.makeDevErrorResponse(res, 'signature not verified');
       }
@@ -106,7 +106,7 @@ function json(fastify, opts, done) {
       let dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
       let filePath = path.join(dirPath, "dummy");
       fs.writeFileSync(filePath, req.body.data);
-      const cid = req.g.r.ipfs.addFile(filePath);
+      const cid = req.g.a.ipfs.addFile(filePath);
       return utils.makeResponse(res, {cid : cid});
     }
   });
