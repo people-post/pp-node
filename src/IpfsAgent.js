@@ -20,6 +20,7 @@ export default class IpfsAgent {
 
   publishName(key, cid) {
     const cmd = `ipfs name publish --key=${key} ${cid}`;
+    // TODO: Evaluate --allow-offline
     child_process.execSync(cmd);
   }
 
