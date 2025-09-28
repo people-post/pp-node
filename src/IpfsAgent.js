@@ -5,7 +5,7 @@ export default class IpfsAgent {
     const cmd = 'ipfs add --pin=false ' + filePath;
     const stdout = child_process.execSync(cmd);
     // stdout: Added <cid> name
-    return cid = stdout.toString().split(" ")[1];
+    return stdout.toString().split(" ")[1];
   }
 
   fetchFile(cid, toPath) {
@@ -20,6 +20,7 @@ export default class IpfsAgent {
 
   publishName(key, cid) {
     const cmd = `ipfs name publish --key=${key} ${cid}`;
+    // TODO: Evaluate --allow-offline
     child_process.execSync(cmd);
   }
 

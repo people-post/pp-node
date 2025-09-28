@@ -37,7 +37,7 @@ function addPin(fastify, options, done) {
     schema : bodySchema,
     preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
-      if (!utils.verifySignature(req.body.data, req.g.user.publicKey,
+      if (!utils.verifySignature(req.body.data, req.g.user.getPublicKey(),
                                  req.body.signature)) {
         return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
@@ -57,7 +57,7 @@ function addPin(fastify, options, done) {
 
       req.g.a.ipfs.pinCids(d.cids);
 
-      aUserFile.attach(req.g.a.d.getOrInitUserDir(req.g.user.id));
+      aUserFile.attach(req.g.a.d.getOrInitUserDir(req.g.user.getId()));
       for (let cid of d.cids) {
         aUserFile.saveFile(cid, req.g.a.ipfs);
       }
@@ -85,7 +85,7 @@ function publish(fastify, options, done) {
     schema : schema,
     preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
     handler : async (req, res) => {
-      if (!utils.verifySignature(req.body.cid, req.g.user.publicKey,
+      if (!utils.verifySignature(req.body.cid, req.g.user.getPublicKey(),
                                  req.body.signature)) {
         return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
