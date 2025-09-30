@@ -7,12 +7,8 @@ function addPin(fastify, options, done) {
   const bodySchema = {
     body : {
       type : 'object',
-      properties : {
-        data : {type : 'string'},
-        id : {type : 'string'},
-        signature : {type : 'string'}
-      },
-      required : [ 'data', 'id', 'signature' ]
+      properties : {data : {type : 'string'}, signature : {type : 'string'}},
+      required : [ 'data', 'signature' ]
     }
   };
 
