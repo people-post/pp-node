@@ -86,11 +86,8 @@ function json(fastify, opts, done) {
   const schema = {
     body : {
       type : 'object',
-      properties : {
-        data : {type : 'string'},
-        id : {type : 'string'},
-        signature : {type : 'string'}
-      }
+      properties : {data : {type : 'string'}, signature : {type : 'string'}},
+      required : [ 'data', 'signature' ]
     }
   };
 
