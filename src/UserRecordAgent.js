@@ -52,16 +52,24 @@ export default class UserRecordAgent {
     }
   }
 
-  setUser(userId, name, publicKey, peerId) {
+  updateUser(u) {
+    this.#mUsers.set(u.getId(), u);
+    this.saveData();
+  }
+
+  initUser(userId, name, publicKey, peerId) {
     // Update user map in memory, format is in sync with users.json
     const u = new User(
         {id : userId, name : name, public_key : publicKey, peer_id : peerId});
     this.#mUsers.set(userId, u);
+    this.saveData();
+    return u;
+  }
 
+  saveData() {
     // Flush to db
     const ds = this.#mUsers.values().map(v => v.toJson()).toArray();
     const content = JSON.stringify({list : ds}, null, 2);
     fs.writeFileSync(this.#dataFilePath, content);
-    return u;
   }
 }

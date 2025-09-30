@@ -1,14 +1,17 @@
 import cors from '@fastify/cors'
 import multipart from '@fastify/multipart';
+import FastifySchedule from '@fastify/schedule';
 import FastifyStatic from '@fastify/static';
 import {Command} from 'commander';
 import Fastify from 'fastify';
 import fs from 'node:fs';
 import path from 'node:path';
 import * as utils from 'pp-js-lib';
+import {AsyncTask, SimpleIntervalJob} from 'toad-scheduler';
 
 import DataRootDirAgent from './DataRootDirAgent.js';
 import IpfsAgent from './IpfsAgent.js';
+import Publisher from './Publisher.js';
 import {routes as hostRoutes} from './r_host.js';
 import {routes as pinRoutes} from './r_pin.js';
 import {routes as uploadRoutes} from './r_upload.js';
@@ -33,6 +36,9 @@ const aDataRoot = new DataRootDirAgent();
 aDataRoot.init({root : config.root, data_dir : config.data_dir});
 const aToken = new TokenRecordAgent();
 const aIpfs = new IpfsAgent();
+const publisher = new Publisher();
+publisher.init(aUserRecord, aIpfs, {minInterval : config.min_publish_interval});
+
 let httpsConfig = null;
 if (config.ssl_key && config.ssl_cert) {
   httpsConfig = {
@@ -40,6 +46,10 @@ if (config.ssl_key && config.ssl_cert) {
     cert : fs.readFileSync(path.join(config.root, config.ssl_cert))
   };
 }
+
+const taskPublish =
+    new AsyncTask('Publisher', async () => { publisher.publish(); },
+                  (err) => { console.error('Publisher error', err); });
 
 console.info("Creating API server...");
 
@@ -53,7 +63,8 @@ fastify.addHook('preHandler', async (req, res) => {
   if (!req.g) {
     req.g = {
       config : config,
-      a : {r : {u : aUserRecord, t : aToken}, d : aDataRoot, ipfs : aIpfs}
+      a : {r : {u : aUserRecord, t : aToken}, d : aDataRoot, ipfs : aIpfs},
+      publisher : publisher
     };
   }
 });
@@ -77,10 +88,13 @@ fastify.register(multipart, {
     parts : 100 // For multipart forms, the max number of parts (fields + files)
   }
 });
+fastify.register(FastifySchedule);
 fastify.register(hostRoutes, {prefix : '/api/host'});
 fastify.register(userRoutes, {prefix : '/api/user'});
 fastify.register(pinRoutes, {prefix : '/api/pin'});
 fastify.register(uploadRoutes, {prefix : '/api/upload'});
+fastify.ready().then(() => {fastify.scheduler.addSimpleIntervalJob(
+                         new SimpleIntervalJob({seconds : 30}, taskPublish))});
 
 const c = {
   host : config.host,

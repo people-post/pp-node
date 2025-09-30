@@ -28,7 +28,7 @@ function getUser(fastify, options, done) {
       } else {
         u = req.g.a.r.u.getUserByName(req.query.name);
       }
-      return utils.makeResponse(res, {user : u ? u.toJson() : null});
+      return utils.makeResponse(res, {user : u ? u.ltsToJsonApi() : null});
     }
   });
 
@@ -40,7 +40,7 @@ function listUsers(fastify, options, done) {
     handler : async (req, res) => {
       let dUsers = [];
       for (let u of req.g.a.r.u.getAll()) {
-        dUsers.push(u.toJson());
+        dUsers.push(u.ltsToJsonApi());
       }
       return utils.makeResponse(res, {users : dUsers});
     }
@@ -122,8 +122,8 @@ function registerUser(fastify, options, done) {
       peerId = req.g.a.ipfs.createIpnsName(d.name);
       //}
 
-      const u = req.g.a.r.u.setUser(d.id, d.name, req.body.public_key, peerId);
-      return utils.makeResponse(res, {user : u.toJson()});
+      const u = req.g.a.r.u.initUser(d.id, d.name, req.body.public_key, peerId);
+      return utils.makeResponse(res, {user : u.ltsToJsonApi()});
     }
   });
 

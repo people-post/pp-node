@@ -69,15 +69,12 @@ function addPin(fastify, options, done) {
   done();
 }
 
-function publish(fastify, options, done) {
+function publishPin(fastify, options, done) {
   const schema = {
     body : {
       type : 'object',
-      properties : {
-        cid : {type : 'string'},
-        id : {type : 'string'},
-        signature : {type : 'string'}
-      },
+      properties : {cid : {type : 'string'}, signature : {type : 'string'}},
+      required : [ 'cid', 'signature' ]
     }
   };
 
@@ -90,7 +87,9 @@ function publish(fastify, options, done) {
         return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 
-      req.g.a.ipfs.publishName('self', req.body.cid);
+      req.g.user.setRootCid(req.body.cid);
+      req.g.a.r.u.updateUser(req.g.user);
+      req.g.publisher.publish();
       return utils.makeResponse(res, {});
     }
   });
@@ -100,7 +99,7 @@ function publish(fastify, options, done) {
 
 function routes(fastify, opts, done) {
   fastify.register(addPin);
-  fastify.register(publish);
+  fastify.register(publishPin);
   done();
 }
 
