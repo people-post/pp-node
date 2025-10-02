@@ -19,12 +19,12 @@ export default class IpfsAgent {
   }
 
   publishName(key, cid) {
-    const cmd = `ipfs name publish --key=${key} ${cid} --allow-offline`;
+    const cmd = `ipfs name publish --key="${key}" ${cid} --allow-offline`;
     child_process.execSync(cmd);
   }
 
   createIpnsName(name) {
-    const cmd = 'ipfs key gen ' + name;
+    const cmd = 'ipfs key gen "' + name + '"';
     // Trim off whitespace and newline
     return child_process.execSync(cmd).toString().trim();
   }
