@@ -112,7 +112,7 @@ let node;
 createLibp2p({
   services : {http : libp2pHttp({server : libp2pHttpServer(fastify)})}
 }).then(n => {
-  console.log("Libp2p node ready");
+  console.log("Libp2p node ready, peer id:", n.peerId.toString());
   node = n;
 });
 
