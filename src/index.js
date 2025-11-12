@@ -1,9 +1,12 @@
-import cors from '@fastify/cors'
+import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 import FastifySchedule from '@fastify/schedule';
 import FastifyStatic from '@fastify/static';
+import {http as libp2pHttp} from '@libp2p/http';
+import {nodeServer as libp2pHttpServer} from '@libp2p/http-server';
 import {Command} from 'commander';
 import Fastify from 'fastify';
+import {createLibp2p} from 'libp2p';
 import fs from 'node:fs';
 import path from 'node:path';
 import * as utils from 'pp-js-lib';
@@ -104,6 +107,9 @@ const c = {
 if (config.debug) {
   c.logger = true;
 }
+
+const node = await createLibp2p(
+    {services : {http : libp2pHttp({server : libp2pHttpServer(fastify)})}});
 
 fastify.listen(c);
 
