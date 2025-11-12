@@ -108,8 +108,13 @@ if (config.debug) {
   c.logger = true;
 }
 
-const node = await createLibp2p(
-    {services : {http : libp2pHttp({server : libp2pHttpServer(fastify)})}});
+let node;
+createLibp2p({
+  services : {http : libp2pHttp({server : libp2pHttpServer(fastify)})}
+}).then(n => {
+  console.log("Libp2p node ready");
+  node = n;
+});
 
 fastify.listen(c);
 
