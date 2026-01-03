@@ -17,10 +17,14 @@
     "devDependencies": {
         "@types/node": "^25.0.3",
         "esbuild": "^0.25.9",
+        "tsx": "^4.21.0",
         "typescript": "^5.9.3"
     },
     "scripts": {
         "build": "tsc",
-        "check": "tsc --noEmit"
+        "bundle": "esbuild src/index.ts --bundle --platform=node --outfile=bundle.js --format=esm --external:pp-js-lib --external:node:* --external:@fastify/* --external:sharp --external:commander --external:fastify --external:ajv --external:toad-scheduler --external:@noble/post-quantum --log-level=warning",
+        "check": "tsc --noEmit",
+        "test": "node --import tsx --test src/**/*.test.ts",
+        "test:watch": "node --import tsx --test --watch src/**/*.test.ts"
     }
 }

@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {pipeline} from 'node:stream/promises';
 import {FastifyInstance, FastifyPluginOptions} from 'fastify';
-import * as utils from 'pp-js-lib';
+import { utils } from 'pp-js-lib';
 
 import ImageAgent from './ImageAgent.js';
 

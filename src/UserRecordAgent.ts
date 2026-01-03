@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import * as utils from 'pp-js-lib';
+import { utils } from 'pp-js-lib';
 
 import User from './data_types/User.js';
 import Quota from './Quota.js';

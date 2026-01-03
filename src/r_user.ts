@@ -1,6 +1,6 @@
 import Ajv from 'ajv';
 import {FastifyInstance, FastifyPluginOptions} from 'fastify';
-import * as utils from 'pp-js-lib';
+import { utils } from 'pp-js-lib';
 
 function getUser(fastify: FastifyInstance, _options: FastifyPluginOptions, done: () => void) {
   fastify.get('/get', {

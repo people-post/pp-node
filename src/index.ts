@@ -6,7 +6,7 @@ import {Command} from 'commander';
 import Fastify from 'fastify';
 import fs from 'node:fs';
 import path from 'node:path';
-import * as utils from 'pp-js-lib';
+import { utils } from 'pp-js-lib';
 import {AsyncTask, SimpleIntervalJob} from 'toad-scheduler';
 
 import DataRootDirAgent from './DataRootDirAgent.js';

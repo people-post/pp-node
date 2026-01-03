@@ -1,5 +1,5 @@
 import {FastifyInstance, FastifyPluginOptions} from 'fastify';
-import * as utils from 'pp-js-lib';
+import { utils } from 'pp-js-lib';
 
 function getInfo(fastify: FastifyInstance, _options: FastifyPluginOptions, done: () => void) {
   fastify.get('/info', {
