@@ -1,16 +1,22 @@
-export default class Quota {
-  #config = null;
-  #records = [];
+interface QuotaConfig {
+  threshold: number;
+  period: number;
+}
 
-  constructor(config) {
+export default class Quota {
+  #config: QuotaConfig | null = null;
+  #records: number[] = [];
+
+  constructor(config: QuotaConfig) {
     // Fields in config:
     // threshold:
     // period:
     this.#config = config;
   }
 
-  isAvailable() {
+  isAvailable(): boolean {
     // TODO: Support tiers
+    if (!this.#config) return false;
     let t = Date.now() - this.#config.period;
     let idx = this.#records.findIndex(x => x > t);
     let n = this.#records.length;
@@ -21,7 +27,8 @@ export default class Quota {
     return n < this.#config.threshold;
   }
 
-  addItem() {
+  addItem(): void {
+    if (!this.#config) return;
     // Remove useless items
     let t = Date.now() - this.#config.period;
     let idx = this.#records.findIndex(x => x > t);
@@ -32,3 +39,4 @@ export default class Quota {
     this.#records.push(Date.now());
   }
 }
+

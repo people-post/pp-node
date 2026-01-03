@@ -1,9 +1,15 @@
 import crypto from 'node:crypto';
 
-export default class TokenRecordAgent {
-  #records = [];
+interface TokenRecord {
+  timestamp: number;
+  token: string;
+  userId: string;
+}
 
-  initFor(userId) {
+export default class TokenRecordAgent {
+  #records: TokenRecord[] = [];
+
+  initFor(userId: string): string {
     // Remove useless items
     const t = Date.now() - 60000; // 1min
     const idx = this.#records.findIndex(x => x.timestamp > t);
@@ -17,7 +23,7 @@ export default class TokenRecordAgent {
     return v;
   }
 
-  pop(token) {
+  pop(token: string): string | null {
     const idx = this.#records.findIndex(x => x.token == token);
     if (idx < 0) {
       return null;
@@ -27,9 +33,10 @@ export default class TokenRecordAgent {
     return userId;
   }
 
-  #generateSecureRandomString(length) {
+  #generateSecureRandomString(length: number): string {
     return crypto.randomBytes(Math.ceil(length / 2))
         .toString('hex')
         .slice(0, length);
   }
 }
+

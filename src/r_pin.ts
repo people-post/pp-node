@@ -1,9 +1,10 @@
 import Ajv from 'ajv';
+import {FastifyInstance, FastifyPluginOptions} from 'fastify';
 import * as utils from 'pp-js-lib';
 
 import UserFileAgent from './UserFileAgent.js';
 
-function addPin(fastify, options, done) {
+function addPin(fastify: FastifyInstance, _options: FastifyPluginOptions, done: () => void) {
   const bodySchema = {
     body : {
       type : 'object',
@@ -31,30 +32,34 @@ function addPin(fastify, options, done) {
 
   fastify.post('/add', {
     schema : bodySchema,
-    preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
+    preHandler : async (req, res) => utils.authCheck(req, res, req.g!.a.r.u),
     handler : async (req, res) => {
-      if (!utils.verifySignature(req.body.data, req.g.user.getPublicKey(),
-                                 req.body.signature)) {
+      if (!req.g || !req.g.user) {
+        return res.status(500).send({error: 'Internal server error'});
+      }
+      const body = req.body as {data: string; signature: string};
+      if (!utils.verifySignature(body.data, req.g.user.getPublicKey(), body.signature)) {
         return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 
       let d;
       try {
-        d = JSON.parse(req.body.data);
+        d = JSON.parse(body.data);
       } catch (e) {
         return utils.makeDevErrorResponse(res, 'Invalid data format');
       }
 
       const valid = objValidate(d);
       if (!valid) {
-        let msg = objValidate.errors.map(x => x.message).join(' ');
+        let msg = objValidate.errors?.map(x => x.message).join(' ') || 'Validation failed';
         return utils.makeDevErrorResponse(res, msg);
       }
 
-      req.g.a.ipfs.pinCids(d.cids);
+      const pinData = d as {cids: string[]};
+      req.g.a.ipfs.pinCids(pinData.cids);
 
       aUserFile.attach(req.g.a.d.getOrInitUserDir(req.g.user.getId()));
-      for (let cid of d.cids) {
+      for (let cid of pinData.cids) {
         aUserFile.saveFile(cid, req.g.a.ipfs);
       }
 
@@ -65,7 +70,7 @@ function addPin(fastify, options, done) {
   done();
 }
 
-function publishPin(fastify, options, done) {
+function publishPin(fastify: FastifyInstance, _options: FastifyPluginOptions, done: () => void) {
   const schema = {
     body : {
       type : 'object',
@@ -76,14 +81,17 @@ function publishPin(fastify, options, done) {
 
   fastify.post('/publish', {
     schema : schema,
-    preHandler : async (req, res) => utils.authCheck(req, res, req.g.a.r.u),
+    preHandler : async (req, res) => utils.authCheck(req, res, req.g!.a.r.u),
     handler : async (req, res) => {
-      if (!utils.verifySignature(req.body.cid, req.g.user.getPublicKey(),
-                                 req.body.signature)) {
+      if (!req.g || !req.g.user) {
+        return res.status(500).send({error: 'Internal server error'});
+      }
+      const body = req.body as {cid: string; signature: string};
+      if (!utils.verifySignature(body.cid, req.g.user.getPublicKey(), body.signature)) {
         return utils.makeDevErrorResponse(res, 'Failed to verify signature');
       }
 
-      req.g.user.setRootCid(req.body.cid);
+      req.g.user.setRootCid(body.cid);
       req.g.a.r.u.updateUser(req.g.user);
       req.g.publisher.publish();
       return utils.makeResponse(res, {});
@@ -93,10 +101,11 @@ function publishPin(fastify, options, done) {
   done();
 }
 
-function routes(fastify, opts, done) {
+function routes(fastify: FastifyInstance, _opts: FastifyPluginOptions, done: () => void) {
   fastify.register(addPin);
   fastify.register(publishPin);
   done();
 }
 
 export {routes}
+

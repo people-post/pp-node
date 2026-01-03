@@ -3,10 +3,15 @@ import path from 'node:path';
 
 import DataRootDirectory from './data_types/DataRootDirectory.js';
 
-export default class DataRootDirAgent {
-  #rootDir;
+interface DataRootDirConfig {
+  root: string;
+  data_dir?: string;
+}
 
-  init(config) {
+export default class DataRootDirAgent {
+  #rootDir: DataRootDirectory | null = null;
+
+  init(config: DataRootDirConfig): void {
     // Fields in config:
     // root:
     // data_dir:
@@ -23,7 +28,10 @@ export default class DataRootDirAgent {
     this.#attach(dirPath);
   }
 
-  getOrInitUserDir(userId) {
+  getOrInitUserDir(userId: string): string {
+    if (!this.#rootDir) {
+      throw new Error('DataRootDirAgent not initialized');
+    }
     let dirPath = this.#rootDir.getUserDirPath(userId);
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, {recursive : true});
@@ -31,5 +39,6 @@ export default class DataRootDirAgent {
     return dirPath;
   }
 
-  #attach(dirRoot) { this.#rootDir = new DataRootDirectory(dirRoot); }
+  #attach(dirRoot: string): void { this.#rootDir = new DataRootDirectory(dirRoot); }
 }
+

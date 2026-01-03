@@ -6,8 +6,8 @@ then
 fi
 mkdir $WORK_DIR
 
-ENTRY_JS_PATH=src/index.js
+ENTRY_TS_PATH=src/index.ts
 BUNDLE_JS_PATH=$WORK_DIR/bundle.js
 
-# Bundle into single js file
-esbuild $ENTRY_JS_PATH --bundle --platform=node --outfile=$BUNDLE_JS_PATH
+# Compile TypeScript and bundle into single js file
+esbuild $ENTRY_TS_PATH --bundle --platform=node --outfile=$BUNDLE_JS_PATH --format=esm

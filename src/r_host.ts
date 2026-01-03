@@ -1,16 +1,12 @@
+import {FastifyInstance, FastifyPluginOptions} from 'fastify';
 import * as utils from 'pp-js-lib';
 
-function getInfo(fastify, options, done) {
-  const schema = {
-    query : {
-      type : 'object',
-      properties : {id : {type : 'string'}},
-      required : [ 'id' ]
-    }
-  };
-
+function getInfo(fastify: FastifyInstance, _options: FastifyPluginOptions, done: () => void) {
   fastify.get('/info', {
     handler : async (req, res) => {
+      if (!req.g) {
+        return res.status(500).send({error: 'Internal server error'});
+      }
       // TODO: Dynamically get peer id
       return utils.makeResponse(res, {
         info : {
@@ -33,9 +29,10 @@ function getInfo(fastify, options, done) {
   done();
 }
 
-function routes(fastify, opts, done) {
+function routes(fastify: FastifyInstance, _opts: FastifyPluginOptions, done: () => void) {
   fastify.register(getInfo);
   done();
 }
 
 export {routes}
+
