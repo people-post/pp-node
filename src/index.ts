@@ -2,20 +2,26 @@ import cors from '@fastify/cors'
 import multipart from '@fastify/multipart';
 import FastifySchedule from '@fastify/schedule';
 import FastifyStatic from '@fastify/static';
-import {Command} from 'commander';
+import { noise } from '@chainsafe/libp2p-noise';
+import { yamux } from '@chainsafe/libp2p-yamux';
+import { http } from '@libp2p/http';
+import { nodeServer } from '@libp2p/http-server';
+import { tcp } from '@libp2p/tcp';
+import { Command } from 'commander';
 import Fastify from 'fastify';
-import fs from 'node:fs';
+import { createServer } from 'node:http';
 import path from 'node:path';
+import { createLibp2p } from 'libp2p';
 import { utils } from 'pp-js-lib';
-import {AsyncTask, SimpleIntervalJob} from 'toad-scheduler';
+import { AsyncTask, SimpleIntervalJob } from 'toad-scheduler';
 
 import DataRootDirAgent from './DataRootDirAgent.js';
 import IpfsAgent from './IpfsAgent.js';
 import Publisher from './Publisher.js';
-import {routes as hostRoutes} from './r_host.js';
-import {routes as pinRoutes} from './r_pin.js';
-import {routes as uploadRoutes} from './r_upload.js';
-import {routes as userRoutes} from './r_user.js';
+import { routes as hostRoutes } from './r_host.js';
+import { routes as pinRoutes } from './r_pin.js';
+import { routes as uploadRoutes } from './r_upload.js';
+import { routes as userRoutes } from './r_user.js';
 import TokenRecordAgent from './TokenRecordAgent.js';
 import UserRecordAgent from './UserRecordAgent.js';
 // Type definitions for Fastify request extensions are automatically loaded
@@ -26,8 +32,6 @@ interface Config {
   users: string;
   host?: string;
   port?: number;
-  ssl_key?: string;
-  ssl_cert?: string;
   enable_register?: boolean;
   enable_reclaim?: boolean;
   min_publish_interval?: number;
@@ -55,23 +59,22 @@ const aIpfs = new IpfsAgent();
 const publisher = new Publisher();
 publisher.init(aUserRecord, aIpfs, {minInterval : config.min_publish_interval});
 
-let httpsConfig: {key: Buffer; cert: Buffer} | null = null;
-if (config.ssl_key && config.ssl_cert) {
-  httpsConfig = {
-    key : fs.readFileSync(path.join(config.root, config.ssl_key)),
-    cert : fs.readFileSync(path.join(config.root, config.ssl_cert))
-  };
-}
-
 const taskPublish =
     new AsyncTask('Publisher', async () => { publisher.publish(); },
                   (err) => { console.error('Publisher error', err); });
 
 console.info("Creating API server...");
 
-const fastify = httpsConfig 
-  ? Fastify({logger : true, https : httpsConfig as any})
-  : Fastify({logger : true});
+// Single Node HTTP server: Fastify attaches via serverFactory; libp2p injects connections via nodeServer(server).
+let httpServer: ReturnType<typeof createServer> | null = null;
+const serverFactory = (handler: (req: any, res: any) => void, _opts: unknown) => {
+  if (!httpServer) {
+    httpServer = createServer(handler);
+  }
+  return httpServer;
+};
+
+const fastify = Fastify({ logger: true, serverFactory });
 
 // a: agent
 //   r: record
@@ -111,23 +114,32 @@ const fastify = httpsConfig
 (fastify as any).register(userRoutes, {prefix : '/api/user'});
 (fastify as any).register(pinRoutes, {prefix : '/api/pin'});
 (fastify as any).register(uploadRoutes, {prefix : '/api/upload'});
-fastify.ready().then(() => {fastify.scheduler.addSimpleIntervalJob(
-                         new SimpleIntervalJob({seconds : 30}, taskPublish))});
+await fastify.ready();
+fastify.scheduler.addSimpleIntervalJob(new SimpleIntervalJob({ seconds: 30 }, taskPublish));
 
-const c: {
-  host?: string;
-  port?: number;
-  logger?: boolean;
-} = {
-  host : config.host,
-  port : config.port
-};
-
-if (config.debug) {
-  c.logger = true;
+if (!httpServer) {
+  throw new Error('HTTP server was not created by serverFactory');
 }
 
-fastify.listen(c);
+const listenHost = config.host ?? '0.0.0.0';
+const listenPort = config.port ?? 0;
+const listenMultiaddr = `/ip4/${listenHost}/tcp/${listenPort}`;
 
-console.info("Running...");
+const node = await createLibp2p({
+  addresses: { listen: [listenMultiaddr] },
+  transports: [tcp()],
+  connectionEncrypters: [noise()],
+  streamMuxers: [yamux()],
+  services: {
+    http: http({
+      server: nodeServer(httpServer),
+    }),
+  },
+});
+
+console.info('Server listening on libp2p:');
+node.getMultiaddrs().forEach((ma) => {
+  console.info('  %s', ma.toString());
+});
+console.info('Running...');
 
