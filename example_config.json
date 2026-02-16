@@ -1,11 +1,10 @@
 {
     "debug": true,
     "enable_register": true,
-    "host": "::",
+    "host": "0.0.0.0",
     "port": 9097,
-    "ssl_key": "ssl.key",
-    "ssl_cert": "ssl.cert",
     "users": "users.json",
-    "data_dir": "/home/hongwei/data/test_pn_data",
+    "data_dir": "/path/to/data/dir",
+    "peer_id_file": "peer_id.json",
     "api_key": "abc"
 }

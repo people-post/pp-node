@@ -4,12 +4,14 @@ import FastifySchedule from '@fastify/schedule';
 import FastifyStatic from '@fastify/static';
 import { noise } from '@chainsafe/libp2p-noise';
 import { yamux } from '@chainsafe/libp2p-yamux';
+import { privateKeyFromProtobuf } from '@libp2p/crypto/keys';
 import { http } from '@libp2p/http';
 import { nodeServer } from '@libp2p/http-server';
 import { tcp } from '@libp2p/tcp';
 import { Command } from 'commander';
 import Fastify from 'fastify';
 import { createServer } from 'node:http';
+import fs from 'node:fs';
 import path from 'node:path';
 import { createLibp2p } from 'libp2p';
 import { utils } from 'pp-js-lib';
@@ -32,6 +34,8 @@ interface Config {
   users: string;
   host?: string;
   port?: number;
+  /** Path to libp2p key file (JSON with base64 PrivKey, or raw protobuf). Enables fixed peer id in multiaddrs. */
+  peer_id_file?: string;
   enable_register?: boolean;
   enable_reclaim?: boolean;
   min_publish_interval?: number;
@@ -125,7 +129,25 @@ const listenHost = config.host ?? '0.0.0.0';
 const listenPort = config.port ?? 0;
 const listenMultiaddr = `/ip4/${listenHost}/tcp/${listenPort}`;
 
-const node = await createLibp2p({
+function loadPrivateKeyFromFile(root: string, filePath: string): ReturnType<typeof privateKeyFromProtobuf> {
+  const resolved = path.isAbsolute(filePath) ? filePath : path.join(root, filePath);
+  const raw = fs.readFileSync(resolved);
+  let protobuf: Uint8Array;
+  const first = raw[0];
+  if (first === 0x7b) {
+    // '{' — JSON (e.g. IPFS-style {"Id":"...", "PrivKey":"<base64>"})
+    const json = JSON.parse(raw.toString('utf8')) as { PrivKey?: string };
+    if (json.PrivKey == null) {
+      throw new Error(`peer_id_file ${filePath}: missing "PrivKey" in JSON`);
+    }
+    protobuf = Buffer.from(json.PrivKey, 'base64');
+  } else {
+    protobuf = raw;
+  }
+  return privateKeyFromProtobuf(protobuf);
+}
+
+const libp2pOptions: Parameters<typeof createLibp2p>[0] = {
   addresses: { listen: [listenMultiaddr] },
   transports: [tcp()],
   connectionEncrypters: [noise()],
@@ -135,7 +157,13 @@ const node = await createLibp2p({
       server: nodeServer(httpServer),
     }),
   },
-});
+};
+
+if (config.peer_id_file) {
+  libp2pOptions.privateKey = loadPrivateKeyFromFile(config.root, config.peer_id_file);
+}
+
+const node = await createLibp2p(libp2pOptions);
 
 console.info('Server listening on libp2p:');
 node.getMultiaddrs().forEach((ma) => {
