@@ -43,7 +43,7 @@ function file(fastify: FastifyInstance, _opts: FastifyPluginOptions, done: () =>
       let dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
       let filePath = path.join(dirPath, "dummy");
       await pipeline(data.file, fs.createWriteStream(filePath));
-      const cid = req.g!.a.ipfs.addFile(filePath);
+      const cid = await req.g!.a.ipfs.addFile(filePath);
       return utils.makeResponse(res, {cid : cid.toString()});
     }
   });
@@ -129,7 +129,7 @@ function json(fastify: FastifyInstance, _opts: FastifyPluginOptions, done: () =>
       let dirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'dummy-'));
       let filePath = path.join(dirPath, "dummy");
       fs.writeFileSync(filePath, body.data);
-      const cid = req.g.a.ipfs.addFile(filePath);
+      const cid = await req.g.a.ipfs.addFile(filePath);
       return utils.makeResponse(res, {cid : cid});
     }
   });

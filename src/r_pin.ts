@@ -56,11 +56,11 @@ function addPin(fastify: FastifyInstance, _options: FastifyPluginOptions, done: 
       }
 
       const pinData = d as {cids: string[]};
-      req.g.a.ipfs.pinCids(pinData.cids);
+      await req.g.a.ipfs.pinCids(pinData.cids);
 
       aUserFile.attach(req.g.a.d.getOrInitUserDir(req.g.user.getId()));
       for (let cid of pinData.cids) {
-        aUserFile.saveFile(cid, req.g.a.ipfs);
+        await aUserFile.saveFile(cid, req.g.a.ipfs);
       }
 
       return utils.makeResponse(res, {});

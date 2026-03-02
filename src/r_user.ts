@@ -128,7 +128,7 @@ function registerUser(fastify: FastifyInstance, _options: FastifyPluginOptions, 
       //  Use user provided key pair
       //} else {
       // Generate new key pair
-      peerId = req.g.a.ipfs.createIpnsName(userData.name);
+      peerId = await req.g.a.ipfs.createIpnsName(userData.name);
       //}
 
       const u = req.g.a.r.u.initUser(userData.id, userData.name, body.public_key, peerId);

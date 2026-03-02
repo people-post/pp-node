@@ -11,7 +11,7 @@ import UserFileAgent from './UserFileAgent.js';
 class MockIpfsAgent extends IpfsAgent {
   private fetchedFiles: Map<string, string> = new Map();
   
-  fetchFile(cid: string, toPath: string): void {
+  async fetchFile(cid: string, toPath: string): Promise<void> {
     // Track what was fetched
     this.fetchedFiles.set(cid, toPath);
     // Create a dummy file at the target path
@@ -72,21 +72,21 @@ test.describe('UserFileAgent', () => {
   });
 
   test.describe('saveFile', () => {
-    test.it('should throw error if not attached', () => {
+    test.it('should throw error if not attached', async () => {
       const cid = 'QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy';
       
-      assert.throws(
-        () => agent.saveFile(cid, mockIpfsAgent),
+      await assert.rejects(
+        async () => { await agent.saveFile(cid, mockIpfsAgent); },
         /UserFileAgent not attached/,
         'should throw error when not attached'
       );
     });
 
-    test.it('should create directory structure for valid CID', () => {
+    test.it('should create directory structure for valid CID', async () => {
       agent.attach(tempDir);
       const cid = 'QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy';
       
-      agent.saveFile(cid, mockIpfsAgent);
+      await agent.saveFile(cid, mockIpfsAgent);
       
       // Verify directory structure was created
       // CID: QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy
@@ -95,11 +95,11 @@ test.describe('UserFileAgent', () => {
       assert.ok(fs.existsSync(expectedDir), 'Directory structure should be created');
     });
 
-    test.it('should call ipfsAgent.fetchFile with correct parameters', () => {
+    test.it('should call ipfsAgent.fetchFile with correct parameters', async () => {
       agent.attach(tempDir);
       const cid = 'QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy';
       
-      agent.saveFile(cid, mockIpfsAgent);
+      await agent.saveFile(cid, mockIpfsAgent);
       
       // Verify fetchFile was called with the correct CID
       const fetchedPath = mockIpfsAgent.getFetchedFile(cid);
@@ -110,18 +110,18 @@ test.describe('UserFileAgent', () => {
       assert.equal(fetchedPath, expectedPath, 'fetchFile should be called with correct path');
     });
 
-    test.it('should create file at correct location', () => {
+    test.it('should create file at correct location', async () => {
       agent.attach(tempDir);
       const cid = 'QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy';
       
-      agent.saveFile(cid, mockIpfsAgent);
+      await agent.saveFile(cid, mockIpfsAgent);
       
       // Verify file was created
       const expectedFilePath = path.join(tempDir, 'Qm', 'Tz', 'RP', 'GD', cid);
       assert.ok(fs.existsSync(expectedFilePath), 'File should be created at correct location');
     });
 
-    test.it('should handle different CID formats', () => {
+    test.it('should handle different CID formats', async () => {
       agent.attach(tempDir);
       const cids = [
         'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
@@ -130,20 +130,20 @@ test.describe('UserFileAgent', () => {
       ];
       
       for (const cid of cids) {
-        agent.saveFile(cid, mockIpfsAgent);
+        await agent.saveFile(cid, mockIpfsAgent);
         const fetchedPath = mockIpfsAgent.getFetchedFile(cid);
         assert.ok(fetchedPath, `Should handle CID: ${cid}`);
         assert.ok(fs.existsSync(fetchedPath!), `File should exist for CID: ${cid}`);
       }
     });
 
-    test.it('should handle multiple files with same prefix', () => {
+    test.it('should handle multiple files with same prefix', async () => {
       agent.attach(tempDir);
       const cid1 = 'QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy';
       const cid2 = 'QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy2';
       
-      agent.saveFile(cid1, mockIpfsAgent);
-      agent.saveFile(cid2, mockIpfsAgent);
+      await agent.saveFile(cid1, mockIpfsAgent);
+      await agent.saveFile(cid2, mockIpfsAgent);
       
       // Both files should exist in the same directory
       const dir = path.join(tempDir, 'Qm', 'Tz', 'RP', 'GD');
@@ -151,7 +151,7 @@ test.describe('UserFileAgent', () => {
       assert.ok(fs.existsSync(path.join(dir, cid2)), 'Second file should exist');
     });
 
-    test.it('should create nested directories recursively', () => {
+    test.it('should create nested directories recursively', async () => {
       agent.attach(tempDir);
       const cid = 'QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy';
       
@@ -159,7 +159,7 @@ test.describe('UserFileAgent', () => {
       const expectedDir = path.join(tempDir, 'Qm', 'Tz', 'RP', 'GD');
       assert.ok(!fs.existsSync(expectedDir), 'Directory should not exist before saveFile');
       
-      agent.saveFile(cid, mockIpfsAgent);
+      await agent.saveFile(cid, mockIpfsAgent);
       
       // Directory should exist after
       assert.ok(fs.existsSync(expectedDir), 'Directory should be created recursively');
@@ -167,46 +167,46 @@ test.describe('UserFileAgent', () => {
   });
 
   test.describe('edge cases', () => {
-    test.it('should handle minimum valid CID length (8 characters)', () => {
+    test.it('should handle minimum valid CID length (8 characters)', async () => {
       agent.attach(tempDir);
       const cid = '12345678'; // Minimum length
       
-      agent.saveFile(cid, mockIpfsAgent);
+      await agent.saveFile(cid, mockIpfsAgent);
       
       const fetchedPath = mockIpfsAgent.getFetchedFile(cid);
       assert.ok(fetchedPath, 'Should handle minimum length CID');
       assert.ok(fs.existsSync(fetchedPath!), 'File should be created');
     });
 
-    test.it('should throw error for CID shorter than 8 characters', () => {
+    test.it('should throw error for CID shorter than 8 characters', async () => {
       agent.attach(tempDir);
       const shortCid = '1234567'; // 7 characters
       
       // UserDirectory.getFilePath will throw for short CID
-      assert.throws(
-        () => agent.saveFile(shortCid, mockIpfsAgent),
+      await assert.rejects(
+        async () => { await agent.saveFile(shortCid, mockIpfsAgent); },
         /Filename is too short/,
         'Should throw error for CID shorter than 8 characters'
       );
     });
 
-    test.it('should handle very long CID', () => {
+    test.it('should handle very long CID', async () => {
       agent.attach(tempDir);
       const longCid = 'Qm' + 'a'.repeat(100); // Very long CID
       
-      agent.saveFile(longCid, mockIpfsAgent);
+      await agent.saveFile(longCid, mockIpfsAgent);
       
       const fetchedPath = mockIpfsAgent.getFetchedFile(longCid);
       assert.ok(fetchedPath, 'Should handle very long CID');
       assert.ok(fs.existsSync(fetchedPath!), 'File should be created');
     });
 
-    test.it('should handle special characters in CID', () => {
+    test.it('should handle special characters in CID', async () => {
       agent.attach(tempDir);
       // CID with characters that might be in base58 encoding
       const cid = 'QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy';
       
-      agent.saveFile(cid, mockIpfsAgent);
+      await agent.saveFile(cid, mockIpfsAgent);
       
       const fetchedPath = mockIpfsAgent.getFetchedFile(cid);
       assert.ok(fetchedPath, 'Should handle special characters in CID');
@@ -214,7 +214,7 @@ test.describe('UserFileAgent', () => {
   });
 
   test.describe('integration scenarios', () => {
-    test.it('should handle typical file save workflow', () => {
+    test.it('should handle typical file save workflow', async () => {
       agent.attach(tempDir);
       const cid = 'QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy';
       
@@ -222,7 +222,7 @@ test.describe('UserFileAgent', () => {
       assert.ok(true, 'Directory attached');
       
       // 2. Save file
-      agent.saveFile(cid, mockIpfsAgent);
+      await agent.saveFile(cid, mockIpfsAgent);
       
       // 3. Verify file exists
       const expectedPath = path.join(tempDir, 'Qm', 'Tz', 'RP', 'GD', cid);
@@ -233,7 +233,7 @@ test.describe('UserFileAgent', () => {
       assert.equal(fetchedPath, expectedPath, 'IPFS fetchFile should be called correctly');
     });
 
-    test.it('should handle multiple files in sequence', () => {
+    test.it('should handle multiple files in sequence', async () => {
       agent.attach(tempDir);
       const cids = [
         'QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy',
@@ -242,20 +242,20 @@ test.describe('UserFileAgent', () => {
       ];
       
       for (const cid of cids) {
-        agent.saveFile(cid, mockIpfsAgent);
+        await agent.saveFile(cid, mockIpfsAgent);
         const fetchedPath = mockIpfsAgent.getFetchedFile(cid);
         assert.ok(fetchedPath, `File ${cid} should be saved`);
         assert.ok(fs.existsSync(fetchedPath!), `File ${cid} should exist`);
       }
     });
 
-    test.it('should handle files in different directory branches', () => {
+    test.it('should handle files in different directory branches', async () => {
       agent.attach(tempDir);
       const cid1 = 'QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy'; // Qm/Tz/RP/GD/...
       const cid2 = 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG'; // Qm/Yw/AP/Jz/...
       
-      agent.saveFile(cid1, mockIpfsAgent);
-      agent.saveFile(cid2, mockIpfsAgent);
+      await agent.saveFile(cid1, mockIpfsAgent);
+      await agent.saveFile(cid2, mockIpfsAgent);
       
       // Both should create different directory structures
       const path1 = path.join(tempDir, 'Qm', 'Tz', 'RP', 'GD', cid1);
@@ -267,23 +267,23 @@ test.describe('UserFileAgent', () => {
   });
 
   test.describe('error handling', () => {
-    test.it('should throw error when saveFile called before attach', () => {
+    test.it('should throw error when saveFile called before attach', async () => {
       const agent = new UserFileAgent();
       const cid = 'QmTzRPGDNG5yb54D1akGDv89n1jLgdu6Q6PGJCcYdMcBhy';
       
-      assert.throws(
-        () => agent.saveFile(cid, mockIpfsAgent),
+      await assert.rejects(
+        async () => { await agent.saveFile(cid, mockIpfsAgent); },
         /UserFileAgent not attached/,
         'Should throw error when not attached'
       );
     });
 
-    test.it('should handle invalid CID format gracefully', () => {
+    test.it('should handle invalid CID format gracefully', async () => {
       agent.attach(tempDir);
       const invalidCid = '1234567'; // Too short
       
-      assert.throws(
-        () => agent.saveFile(invalidCid, mockIpfsAgent),
+      await assert.rejects(
+        async () => { await agent.saveFile(invalidCid, mockIpfsAgent); },
         /Filename is too short/,
         'Should throw error for invalid CID'
       );

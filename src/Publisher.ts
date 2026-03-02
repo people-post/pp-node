@@ -22,7 +22,7 @@ export default class Publisher {
     }
   }
 
-  publish(): void {
+  async publish(): Promise<void> {
     if (!this.#aUser || !this.#aIpfs) {
       throw new Error('Publisher not initialized');
     }
@@ -32,7 +32,7 @@ export default class Publisher {
       let cid = u.getUnpublishedRootCidAfter(this.#iMin);
       if (cid) {
         const name = u.getName();
-        this.#aIpfs.publishName(name, cid);
+        await this.#aIpfs.publishName(name, cid);
         u.markPublish(cid);
         hasChange = true;
       }

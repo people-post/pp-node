@@ -36,6 +36,8 @@ interface Config {
   port?: number;
   /** Path to libp2p key file (JSON with base64 PrivKey, or raw protobuf). Enables fixed peer id in multiaddrs. */
   peer_id_file?: string;
+  /** Optional path for Helia IPFS repo (blockstore, datastore). Defaults to path.join(data_dir ?? root, 'ipfs'). */
+  ipfs_path?: string;
   enable_register?: boolean;
   enable_reclaim?: boolean;
   min_publish_interval?: number;
@@ -60,11 +62,12 @@ aDataRoot.init({root : config.root, data_dir : config.data_dir});
 const aToken = new TokenRecordAgent();
 aUserRecord.setTokenAgent(aToken);
 const aIpfs = new IpfsAgent();
+await aIpfs.asInit(config);
 const publisher = new Publisher();
 publisher.init(aUserRecord, aIpfs, {minInterval : config.min_publish_interval});
 
 const taskPublish =
-    new AsyncTask('Publisher', async () => { publisher.publish(); },
+    new AsyncTask('Publisher', async () => { await publisher.publish(); },
                   (err) => { console.error('Publisher error', err); });
 
 console.info("Creating API server...");
@@ -170,4 +173,13 @@ node.getMultiaddrs().forEach((ma) => {
   console.info('  %s', ma.toString());
 });
 console.info('Running...');
+
+function shutdown(): void {
+  aIpfs.stop().then(() => process.exit(0)).catch((err) => {
+    console.error('IpfsAgent stop error', err);
+    process.exit(1);
+  });
+}
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 

@@ -8,14 +8,14 @@ export default class UserFileAgent {
   #userDir: UserDirectory | null = null;
   attach(userDirRoot: string): void { this.#userDir = new UserDirectory(userDirRoot); }
 
-  saveFile(cid: string, ipfsAgent: IpfsAgent): void {
+  async saveFile(cid: string, ipfsAgent: IpfsAgent): Promise<void> {
     if (!this.#userDir) {
       throw new Error('UserFileAgent not attached');
     }
     let filePath = this.#userDir.getFilePath(cid);
     const dirPath = path.dirname(filePath);
     fs.mkdirSync(dirPath, {recursive : true});
-    ipfsAgent.fetchFile(cid, filePath);
+    await ipfsAgent.fetchFile(cid, filePath);
   }
 }
 
